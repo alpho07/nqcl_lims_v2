@@ -111,7 +111,7 @@ $quotation_status = $quotation_status[0]['Quotation_status'];
 				</li>
 
 
-				<li>
+				<!--li>
 					<fieldset>
 						<legend>Discount as a Percentage</legend>
 							<li>
@@ -126,25 +126,16 @@ $quotation_status = $quotation_status[0]['Quotation_status'];
 								</label>
 							</li>
 					</fieldset>
-				</li>
+				</li-->
 			
 
 			</ul>
-			<?php if($is_invoice){ ?>
-				<span>
-					<input id="invoice_approve" type = "button" data-submitId = "invoice_approve" class = "submit-button leftie print_invoice" value = "Approve Invoice" data-table = "<?php echo $table; ?>">
-				</span>
-				<span>
-					<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show Invoices" data-table = "<?php echo $table; ?>">
-				</span>
-			<?php } else{?>
-					<span>
-					<input id="invoice_approve" type = "button" data-submitId = "invoice_approve" class = "submit-button leftie print_invoice" value = "Approve Quotation" data-table = "<?php echo $table; ?>">
-				</span>
-				<span>
-					<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show Quotations" data-table = "<?php echo $table; ?>">
-				</span>
-			<?php }?>
+			<span>
+					<input id="invoice_approve" type = "button" data-submitId = "invoice_approve" class = "submit-button leftie print_invoice" value = "Approve <?php echo $info_doc ?>" data-table = "<?php echo $table; ?>">
+			</span>
+			<span>
+					<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show <?php echo $info_doc ?>s" data-table = "<?php echo $table; ?>">
+			</span>
 	</form>
 </div>
 </div>
@@ -365,7 +356,7 @@ $(document).ready(function(){
 				},
 				"className":"amount"
 			},
-			{"sTitle":"Discount (%)","mData":"discount",
+			/*{"sTitle":"Discount (%)","mData":"discount",
 				"mRender":function(data,type,row){
 					return data+"%";
 				},
@@ -376,7 +367,7 @@ $(document).ready(function(){
 					return accounting.formatMoney(data, {symbol : " ", format: "%s %v" });
 				}
 			},
-			/*{"sTitle":"History","mData":"id",
+			{"sTitle":"History","mData":"id",
 				"mRender":function(data,type,row){
 					return '<a>+</a>';
 				},
@@ -591,7 +582,7 @@ $('.print_invoice').on("click", function(){
 		//Set currency and formatting
 		var d_total = accounting.formatMoney(discounted_total, {symbol : "<?php echo $c; ?>", format: "%s %v" });
 
-		$('<div id = "dialog-confirm" title = "Approve Invoice"><span>Approve <b><?php echo $rid ?></b> of Total <b>'+d_total+'</b> (discounted at <b>'+discount+' %</b>)?</span></div>').dialog({
+		$('<div id = "dialog-confirm" title = "Approve <?php echo $info_doc ?>"><span>Approve <b><?php echo $rid ?></b> of Total <b>'+d_total+'</b> (discounted at <b>'+discount+' %</b>)?</span></div>').dialog({
 			resizable:false,
 			height:"auto",
 			width: 400,

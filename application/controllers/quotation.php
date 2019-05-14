@@ -357,7 +357,7 @@ class Quotation extends MY_Controller {
 		$notes = "Edited ".$component_name." ".$old_method_details[0]["Tests"]['Name']." method from ".$old_method_details[0]['name']." to ".$method_details[0]['name'];
 
 		//Add invoice tracking
-		$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes);
+		$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
 
 
  	}
@@ -1030,10 +1030,10 @@ class Quotation extends MY_Controller {
 			$total = $main_total[0]['sum'];
 
 			//Set notes
-			$notes = "";
+			$notes = "Initial quotation generated.";
 
 			//Add Invoice Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
 
 
 
@@ -1084,6 +1084,7 @@ class Quotation extends MY_Controller {
 
 
 		public function addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total){
+
 			
 			//Add draft stage to invoice tracking table
 			$inv_t = new Invoice_tracking();
@@ -1092,7 +1093,7 @@ class Quotation extends MY_Controller {
 			$inv_t->user_id = $user_id;
 			$inv_t->user_type_id = $user_type_id;
 			$inv_t->discount = 0;
-			//$inv_t->batch_total = $batch_total;
+			$inv_t->batch_total = $batch_total;
 			$inv_t->amount = $total;
 			$inv_t->payable_amount = $payable_amount;
 			$inv_t->date = date('Y-m-d H:i:s');
@@ -1256,10 +1257,10 @@ class Quotation extends MY_Controller {
 			}
 
 			//Set notes
-			$notes = "";
+			$notes = "Reverse engineered quotation from existing analysis request.";
 
 			//Add Invoice Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
 
 		}
 
@@ -1543,10 +1544,36 @@ class Quotation extends MY_Controller {
 			//Send to person with corresponding coa
 			
 
-			$notes = "";
+			$notes = "Approved Invoice";
 
 			//Update Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+		}
+
+
+		public function approveQuotation(){
+
+			//Get approving user details
+			$user_id = $this->session->userdata('user_id'); 
+			$user_type_id = $this->session->userdata('usertype_id'); 
+
+			//Get identifier
+			$request_id =  $this->uri->segment(3);
+			$inv_id = $this->uri->segment(4);
+
+			//Extract Invoice Id
+			$invoice_id = substr($inv_id, 0, -2);
+
+			//Update request table
+			$this->db->where('request_id', $request_id);
+			$this->db->update('request', array('invoice_status'=>2));
+
+
+			//Send to person with corresponding coa
+			$notes = "Approved Quotation";
+
+			//Add Tracking
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
 		}
 
 

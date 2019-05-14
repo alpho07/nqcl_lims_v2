@@ -195,7 +195,14 @@ public function showBillPerTest(){
 	$data['tracking_info'] = Invoice_tracking::getLastEntry($invoice_id);
 
 	//Is Invoice or Quotation
-	$data['is_invoice'] = Invoice_tracking::checkInvoiceStatus($data['qt_no']);
+	$invoiceStatus = $this->db->query("SELECT stage FROM `invoice_tracking` WHERE stage LIKE '%invoice%'");
+	$inv_status = $invoiceStatus->result_array();
+		if($inv_status){
+			$data['info_doc'] = 'Invoice';	
+		}
+		else{
+			$data['info_doc'] = 'Quotation';
+		}
 	
 	//Set view, load it
 	$data['content_view'] = 'bill_per_test_v';
