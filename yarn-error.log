@@ -1,0 +1,36 @@
+Arguments: 
+  C:\laragon\bin\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js init
+
+PATH: 
+  C:\Users\ndeth\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\ndeth\bin;C:\ProgramData\Oracle\Java\javapath;C:\xampp\php;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\ProgramData\ComposerSetup\bin;C:\Users\ndeth\AppData\Roaming\Composer\vendor\bin;C:\Program Files (x86)\Skype\Phone;C:\Program Files\OpenVPN\bin;C:\Program Files (x86)\QuickTime\QTSystem;C:\laragon\bin\nodejs;C:\Program Files (x86)\Yarn\bin;C:\Users\ndeth\AppData\Local\Programs\Python\Python35-32\Scripts;C:\Users\ndeth\AppData\Local\Programs\Python\Python35-32;C:\xampp\php;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\ProgramData\ComposerSetup\bin;C:\Users\ndeth\AppData\Roaming\Composer\vendor\bin;C:\HashiCorp\Vagrant\bin;C:\Users\ndeth\AppData\Local\atom\bin;C:\sqlite;C:\Program Files (x86)\Microsoft VS Code\bin;C:\Program Files\Docker Toolbox;C:\Users\ndeth\AppData\Local\Microsoft\WindowsApps;C:\Users\ndeth\AppData\Roaming\npm;C:\Users\ndeth\AppData\Local\Yarn\bin;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+
+Yarn version: 
+  1.3.2
+
+Node version: 
+  7.9.0
+
+Platform: 
+  win32 x64
+
+npm manifest: 
+  No manifest
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
+
+Trace: 
+  Error: canceled
+      at Interface.<anonymous> (C:\Program Files (x86)\Yarn\lib\cli.js:121045:13)
+      at emitNone (events.js:86:13)
+      at Interface.emit (events.js:188:7)
+      at Interface._ttyWrite (readline.js:733:16)
+      at ReadStream.onkeypress (readline.js:120:10)
+      at emitTwo (events.js:106:13)
+      at ReadStream.emit (events.js:194:7)
+      at emitKeys (internal/readline.js:402:14)
+      at emitKeys.next (<anonymous>)
+      at ReadStream.onData (readline.js:980:36)

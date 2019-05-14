@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "accounting": "^0.4.1",
+    "axios": "^0.17.1",
+    "bulma": "^0.6.2",
+    "datatables": "^1.10.13",
+    "datatables-buttons": "^1.0.3",
+    "fancybox": "^3.0.0",
+    "jquery": "^3.2.1",
+    "jquery-ui": "^1.12.1",
+    "money": "^0.2.0",
+    "noty": "^3.2.0-beta",
+    "summernote": "^0.8.10",
+    "vue": "^2.5.13"
+  },
+  "name": "NQCL",
+  "version": "1.0.0",
+  "description": "Javascript packages for NQCL via Yarn",
+  "main": "index.js",
+  "repository": "git@gitlab.com:ndethi/nqcl-fin.git",
+  "author": "ndethi <wndethi@gmail.com>",
+  "license": "MIT"
+}
