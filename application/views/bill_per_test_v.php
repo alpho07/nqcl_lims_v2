@@ -49,7 +49,7 @@ $quotation_status = $quotation_status[0]['Quotation_status'];
 		</ul>
 
 <?php }?>
-<div class ="notification is-info">NB: Default methods assumed. <p>Click <strong>Edit</strong> to confirm correct test/method combinations.</p></div>
+<!--div class ="notification is-info">NB: Default methods assumed. <p>Click <strong>Edit</strong> to confirm correct test/method combinations.</p></div-->
 					<table id ="breakdown">
 						<caption>Cost per test breakdown table</caption>
 						<thead>
@@ -131,7 +131,7 @@ $quotation_status = $quotation_status[0]['Quotation_status'];
 
 			</ul>
 			<span>
-					<input id="invoice_approve" type = "button" data-submitId = "invoice_approve" class = "submit-button leftie print_invoice" value = "Approve <?php echo $info_doc ?>" data-table = "<?php echo $table; ?>">
+					<input id="<?php echo $info_doc ?>_approve" type = "button" data-submitId = "<?php echo $info_doc ?>_approve" class = "submit-button leftie print_invoice" value = "Approve <?php echo $info_doc ?>" data-table = "<?php echo $table; ?>">
 			</span>
 			<span>
 					<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show <?php echo $info_doc ?>s" data-table = "<?php echo $table; ?>">
@@ -178,6 +178,7 @@ $(document).ready(function(){
 				            width: 960,
 				            'afterClose':function(){
 				                $('#breakdown').DataTable().ajax.reload();
+				                $('#invoice_tracking_table').DataTable().ajax.reload();
 				        }
 				    }) 
 	 			}
@@ -194,6 +195,7 @@ $(document).ready(function(){
 	 					width: 960,
 	 					'afterClose':function(){
 	 						$('#breakdown').DataTable().ajax.reload();
+	 						$('#invoice_tracking_table').DataTable().ajax.reload();
 	 					}
 	 				})
 
@@ -329,14 +331,12 @@ $(document).ready(function(){
 		"aoColumns":[
 			{"sTitle":"Id","mData":"id",
 				"className":"id",
-
-
 			},
 			{"sTitle":"Date","mData":"date",
 				"className":"date"
 			},
-			{"sTitle":"Stage","mData":"stage",
-				"className":"stage"
+			{"sTitle":"Notes","mData":"notes",
+				"className":"notes"
 			},
 			{"sTitle":"By","mData":null,
 				"mRender":function(data,type,row){
@@ -350,7 +350,7 @@ $(document).ready(function(){
 				},
 				"className":"role"
 			},
-			{"sTitle":"Amount (<?php echo $c; ?>)","mData":"amount",
+			{"sTitle":"Amount (<?php echo $c; ?>)","mData":"batch_total",
 				"mRender":function(data,type,row){
 					return accounting.formatMoney(data, {symbol : " ", format: "%s %v" });
 				},
@@ -362,7 +362,7 @@ $(document).ready(function(){
 				},
 				"className":"discount"
 			},
-			{"sTitle":"Payable Amount (<?php echo $c; ?>)","mData":"payable_amount",
+			{"sTitle":"Payable Amount (<?php //echo $c; ?>)","mData":"payable_amount",
 				"mRender":function(data,type,row){
 					return accounting.formatMoney(data, {symbol : " ", format: "%s %v" });
 				}
@@ -531,6 +531,10 @@ $('.print_invoice').on("click", function(){
 			save_url = '<?php echo base_url()."quotation/approveInvoice/$request_id/$rid"; ?>',
 			href = '#'
 		}
+		else if(submit_id == 'quotation_approve'){
+			save_url = '<?php echo base_url()."quotation/approveQuotation/$request_id/$rid"; ?>',
+			href = '#'
+		}
 	}
 	else if(table == "invoice"){
 		href = '<?php echo base_url()."quotation/invoiceExtras/$rid/$table/$table2/$table3/"; ?>'
@@ -539,7 +543,8 @@ $('.print_invoice').on("click", function(){
 
 
 
-	if(submit_id != 'invoice_approve'){
+
+	if(submit_id != 'invoice_approve' && submit_id != 'quotation_approve'){
 		$.ajax({
 			type:'POST',
 			url: save_url
@@ -560,7 +565,7 @@ $('.print_invoice').on("click", function(){
 			}
 			else{
 				parent.$.fancybox.close();
-				if(submit_id != 'invoice_approve'){
+				if(submit_id != 'invoice_approve' || submit_id != 'quotation_approve'){
 					parent.location.href = href
 				}
 			}	
@@ -580,9 +585,10 @@ $('.print_invoice').on("click", function(){
 		var discounted_total = (100-discount)/100*tests_total_int;
 
 		//Set currency and formatting
-		var d_total = accounting.formatMoney(discounted_total, {symbol : "<?php echo $c; ?>", format: "%s %v" });
+		var plain_total = accounting.formatMoney(tests_total_int, {symbol : "<?php echo $c; ?>", format: "%s %v" });
+		console.log(plain_total);
 
-		$('<div id = "dialog-confirm" title = "Approve <?php echo $info_doc ?>"><span>Approve <b><?php echo $rid ?></b> of Total <b>'+d_total+'</b> (discounted at <b>'+discount+' %</b>)?</span></div>').dialog({
+		$('<div id = "dialog-confirm" title = "Approve <?php echo $info_doc ?>"><span>Approve <b><?php echo $rid ?></b> of Total <b>'+plain_total+'</b></span></div>').dialog({
 			resizable:false,
 			height:"auto",
 			width: 400,

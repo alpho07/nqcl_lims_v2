@@ -198,10 +198,10 @@ public function showBillPerTest(){
 	$invoiceStatus = $this->db->query("SELECT stage FROM `invoice_tracking` WHERE stage LIKE '%invoice%'");
 	$inv_status = $invoiceStatus->result_array();
 		if($inv_status){
-			$data['info_doc'] = 'Invoice';	
+			$data['info_doc'] = 'invoice';	
 		}
 		else{
-			$data['info_doc'] = 'Quotation';
+			$data['info_doc'] = 'quotation';
 		}
 	
 	//Set view, load it

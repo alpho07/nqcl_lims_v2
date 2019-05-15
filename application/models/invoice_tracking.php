@@ -8,6 +8,7 @@ class Invoice_tracking extends Doctrine_Record {
 		$this -> hasColumn('user_type_id', 'int', 11);
 		$this -> hasColumn('discount', 'int',11);
 		$this -> hasColumn('amount', 'int', 11);
+		$this -> hasColumn('batch_total', 'int', 11);
 		$this -> hasColumn('payable_amount', 'int', 11);
 		$this -> hasColumn('date', 'date');		
 	}

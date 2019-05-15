@@ -139,6 +139,12 @@
 	var extras = [];
 	<?php foreach($extra_columns as $xc) { ?>
 	val = $('#<?php echo $xc['column'] ?>').val()
+	if(val){
+		val = $('#<?php echo $xc['column'] ?>').val()
+	}else{
+		val = 0;
+	}
+
 	extras.push(val);
 	<?php }?>
 	

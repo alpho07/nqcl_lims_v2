@@ -1265,7 +1265,11 @@ class Quotation extends MY_Controller {
 		}
 
 
-		public function updateTotals($quotations_id, $quotation_id, $quotation_no){
+		public function updateTotals($quotations_id, $quotation_id, $quotation_no, $notes){
+
+			//Get user id info
+			$user_id = $this->session->userdata('user_id'); 
+			$user_type_id = $this->session->userdata('usertype_id'); 
 
 			//Get total for this batch only.
 			$b_total = Q_request_details::getBatchTotal($quotations_id);
@@ -1291,6 +1295,9 @@ class Quotation extends MY_Controller {
 			$this -> db -> where($qf_where_array);
 			$this -> db -> update('quotations_final', $qf_update_array);
 		
+			//Add Invoice Tracking
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+
 		}
 
 
@@ -1400,10 +1407,27 @@ class Quotation extends MY_Controller {
 
 				}
 			}
+
+
+			//Initialize Components and Tests Arrays
+			$componentsList = implode(",", $components);
+			$testsNames =  [];
+
+			//Loop through tests and get test names
+			foreach($tests as $test){
+				$testName = Tests::getTestName3($test);
+				array_push($testsNames, $testName[0]['Name']);
+			}
+
+			//Get test names
+			$testsList = implode(",", $testsNames);
+
+			//Get notes
+			$notes = 'Added component(s) '.$componentsList.' for '.$testsList;
 			
 			//Update totals
 			$quotation_no = $this->getQuotationNoFromDb($quotations_id);
-			$this->updateTotals($quotations_id, $quotation_id, $quotation_no);
+			$this->updateTotals($quotations_id, $quotation_id, $quotation_no, $notes);
 		}
 
 
@@ -1567,6 +1591,18 @@ class Quotation extends MY_Controller {
 			//Update request table
 			$this->db->where('request_id', $request_id);
 			$this->db->update('request', array('invoice_status'=>2));
+
+			//Update Invoice
+			$this->db->where('request_id', $request_id);
+			$this->db->update('request', array('invoice_status'=>2));	
+
+			//Get amount
+			$q_amount = Quotations_final::getAmount($request_id);
+			$total = $q_amount[0]['amount'];
+			$payable_amount = $total;
+			$b_total = Q_request_details::getBatchTotal($inv_id);
+		    $batch_total = $b_total[0]['sum']; ;
+		    $quotation_no = $request_id;
 
 
 			//Send to person with corresponding coa
