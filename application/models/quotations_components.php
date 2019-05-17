@@ -38,6 +38,17 @@ class Quotations_components extends Doctrine_Record {
 
 
 
+	public static function getComponentData($component_id){
+		$query = Doctrine_Query::create()
+		-> select('rc.component')
+		-> from("quotations_components rc")
+		-> where("id = ?", $component_id);
+		$component_total = $query -> execute() -> toArray();
+		return $component_total;
+	}
+
+
+
 	public static function getComponentTotal($rid, $component_name){
 		$query = Doctrine_Query::create()
 		-> select('sum(method_charge) as component_total')

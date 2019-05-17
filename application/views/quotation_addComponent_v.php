@@ -132,8 +132,10 @@ $(function(){
 		//Get component name
 		blockId = $(this).attr('data-block_id');
 		component_name = $(this).val();
-		component_name_concat = component_name.replace(/ /g,"_");
+		component_name_concat = component_name.replace(/[^A-Z0-9]/ig,"_");
 		newCheckBoxName = component_name_concat+'_tests[]';
+
+		console.log(newCheckBoxName);
 
 		//Get testbox, to change name to
 		console.log($('.test_checkbox[data-block_id = '+blockId+']').attr('name', newCheckBoxName));
@@ -146,7 +148,7 @@ $(function(){
 		//Get component name
 		blockId = $(this).attr('data-block_id');
 		component_name = $(this).val();
-		component_name_concat = component_name.replace(/ /g,"_");
+		component_name_concat = component_name.replace(/[^A-Z0-9]/ig,"_");
 		newCheckBoxName = component_name_concat+'_tests[]';
 
 		//Get testbox, to change name to

@@ -234,10 +234,10 @@
                 autoSize: false,
                 autoDimensions: false,
                 width: 600,
-                height: 800
-                //'beforeClose':function(){
-                //getData();
-                //}
+                height: 800,
+                'afterClose':function(){
+                	$('#list_quotation').DataTable().ajax.reload();
+                }
             })
         })
 
@@ -272,7 +272,6 @@
 		var tr = $(this).closest('tr');
         var row = qtable.row( tr );
 		
-		
 		//Open, close row
 		if ( row.child.isShown() ) {
             row.child.hide();
@@ -287,12 +286,13 @@
                 url: "<?php echo base_url()?>quotation/listallchildren/"+row.data().Quotation_no,
                  
                 success: function (response) {
-                    row.child( response ).show();
+                    row.child( response).show();
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     row.child( 'Error loading content: ' + thrownError ).show();
                 }
             });
+
             tr.addClass('shown');
 			$(this).text('-');
         }

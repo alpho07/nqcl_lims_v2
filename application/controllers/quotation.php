@@ -264,7 +264,6 @@ class Quotation extends MY_Controller {
  		$test_id = $data['test_id'] = $this->uri->segment(4);
  		$data['quotations_id'] = $quotations_id = $this->uri->segment(5);
  		$data['component_id'] = $component_id = $this->uri->segment(6);
- 		$data['component_name'] = $component_name = $this->uri->segment(7);
  		$data['batch_status'] = $batch_status = $this->uri->segment(11);
  		$currency = $this->uri->segment(12);
  		$data['quotation_no'] = $quotation_no = $this->uri->segment(10);
@@ -283,6 +282,9 @@ class Quotation extends MY_Controller {
  		//Check what batch status is returned, returns correct batch status
  		//var_dump($batch_status);
 
+ 		//Get component name from db
+ 		$component_data = Quotations_components::getComponentData($component_id);
+ 		$data['component_name'] = $component_name = $component_data[0]['component'];
 
  		$this->db->trans_start();
 
@@ -1360,7 +1362,9 @@ class Quotation extends MY_Controller {
 			foreach($components as $key => $value){
 
 				//Replace spaces in component name with underscores
-				$component = str_replace(" ", "_", $value);
+				$component = preg_replace("/[^a-zA-Z0-9\']/", "_", $value);
+
+				var_dump($component);
 
 				//Get tests for each component
 				$tests = $this->input->post($component.'_tests');

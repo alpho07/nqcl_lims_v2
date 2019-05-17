@@ -82,9 +82,9 @@
 	                autoSize: false,
 	                autoDimensions: false,
 	                width: 360,
-	                //'beforeClose':function(){
-	                //getData();
-	                //}
+	                'afterClose':function(){
+	                	$('#list_quotation').DataTable().ajax.reload();
+	                }
 	            })
 	        })
 
@@ -119,6 +119,8 @@
 			var tr = $(this).closest('tr');
         	var row = childTable.row( tr );
 
+        	console.log(tr);
+
 			//Get quotation id
 			quotation_no = row.data().Quotations_id;
 			
@@ -134,11 +136,19 @@
                 autoSize: false,
                 autoDimensions: false,
                 width: 1200,
-                height: 1200
-                //'beforeClose':function(){
-                //getData();
-                //}
+                height: 1200,
+                'afterClose':function(){
+                	childTable.ajax.reload();
+                	tables = $.fn.dataTable.tables(true);
+                	console.log(tables)
+                }
             })
+
+            
+            childTable.on( 'draw', function ( e, settings, json ) {
+    			document.location.href = "http://localhost/NQCL/quotation/listall";
+			});
+			
         })
 
 
