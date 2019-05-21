@@ -75,6 +75,18 @@ class Q_request_details extends Doctrine_Record {
 		return $testData;
 	}
 
+
+	public static function getAllTests($qid){
+		$query = Doctrine_Query::create()
+		-> select("t.Name, qr.id")
+		-> from("q_request_details qr")
+		-> leftJoin("qr.Tests t")
+		-> where("quotations_id = ?" , $qid);
+		$testData = $query -> execute(array(), DOCTRINE::HYDRATE_ARRAY);
+		return $testData;
+	}
+
+
 	public static function getChargesPerClient($rid){
 		$query = Doctrine_Query::create()
 		-> select("q.*, t.*, m.*, c.*")

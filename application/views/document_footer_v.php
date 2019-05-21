@@ -1,3 +1,4 @@
+
 		<?php if($method == "printQuotation") {
 			$colspan = 5;
 			$cspan = 1;
@@ -11,7 +12,10 @@
 			$cspan = $discount_csp;
 		}
 		?>
-
+		<tfoot>
+		<?php foreach($default_notes as $dn){ ?>
+			<tr><td><?php if($dn['note_id'] == 0) { echo "<p>".$dn['system_note'] ."</p>"; } else{ echo "<p>&emsp;".$dn['system_note'] ."</p>"; } ?></td></tr>
+		<?php }?>
 		<tr><td colspan = "<?php echo $colspan; ?>">&nbsp;</td></tr>
 		<?php if($method != "showInvoiceBeforePrint") {?>
 			<tr class = "plain_bold_inline">
@@ -42,16 +46,16 @@
 
 		<tr><td colspan = "<?php echo $colspan; ?>">&nbsp;</td></tr>
 		<?php if($method != 'printInvoice') {?>	
-			<tr class = "smalltext">
-				<td colspan = "<?php echo $colspan; ?>"><span>Note that these costs may change depending on the actual tests carried out.</span>
+			<!--tr class = "smalltext">
+				<!--td colspan = "<?php echo $colspan; ?>"><span>Note that these costs may change depending on the actual tests carried out.</span>
 				</td>
-			</tr>
+			</tr-->
 		<?php } ?>
-		<tr class = "smalltext" >
+		<!--tr class = "smalltext" >
 			<td colspan = "<?php echo $colspan; ?>"><span>All cheques should be made payable to:</span>
 				<span class = "plain_bold_inline" >NATIONAL QUALITY CONTROL LABORATORY.</span>
 			</td>
-		</tr>
+		</tr-->
 
 		<?php if($method == "showInvoiceBeforePrint") {?>
 			<tr>
@@ -62,6 +66,7 @@
 			</tr>
 			</form>	
 		<?php }?>
+		</tfoot>
 
 	<style type="text/css">
 		.plain_bold_inline{
@@ -82,6 +87,12 @@
 		}
 		.reducedtext{
 			font-size: 0.9em;
+		}
+
+		.pdfFooter{
+			position:absolute;
+			bottom:0;
+			width:100%;
 		}
 
 	</style>

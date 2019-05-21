@@ -258,6 +258,16 @@ class Quotations extends Doctrine_Record {
 	}
 
 
+	public static function getQid($reqid){
+		$query = Doctrine_Query::create()
+		-> select("quotations_id")
+		-> from("quotations")
+		-> where("quotation_no = ?", $reqid);
+		$id_data = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $id_data[0]['Quotations_id'];	
+	}
+
+
 	public static function getTotalPerClient($c, $q){
 		$query = Doctrine_Query::create()
 		-> select("sum(q.amount), q.id")

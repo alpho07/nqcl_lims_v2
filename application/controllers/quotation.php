@@ -172,8 +172,11 @@ class Quotation extends MY_Controller {
 		//Get Total of this Quotation
 		$data['quotation_total'] = Quotations::getTotalPerClient($client_id, $rid);
 
-		//Get All Notes
-		$data['quotation_notes'] = Quotation_notes::getAllQuotationNotes($rid);		
+		//Get All Default Notes
+		$data['quotation_notes'] = Quotation_notes::getAllDefaultNotes();		
+
+		//Get All Special Notes
+		$data['special_notes'] = Quotation_notes::getAllSpecialNotes($rid);		
 
 		//Set view
 		$data['content_view'] = "quotation_extras";
@@ -1938,9 +1941,23 @@ class Quotation extends MY_Controller {
 
 		$data['test_data'] = $billing_table::getChargesPerClient($data['reqid']);
 		$data['invoice_data'] = $data['i_data'] = $main_table::getInvoiceDetailsPerClient($client_id, $reqid);
+		if($main_table =="Quotations"){
+			$data['qid'] = $main_table::getQid($reqid);	
+		}
+		else{
+			$data['qid'] = $reqid;
+		}
+		$data['billing_table'] = $billing_table;
+		$data['main_table'] = $main_table;
  		$data['currency'] = $c;
 		$data['admin_fee'] = $admin_fee;
 		
+		
+		//Get default for all batches of this quotation
+		$data['default_notes'] = Quotation_notes::getAllDefaultNotes();
+
+		//Get quotation specific notes 
+		$data['special_notes'] = Quotation_notes::getAllSpecialNotes($reqid);
 		
 		//Get Total
 		$data['total'] = $register::getTotalPerClient($client_id, $reqid);
@@ -1980,9 +1997,9 @@ class Quotation extends MY_Controller {
 		$data['tr_array'] = array('TOTAL COST'=>$adjusted_total);	
 		
 		//Push to view
-        //$data['settings_view'] = "quotation_multiple_v";
+        $data['settings_view'] = "quotation_multiple_v";
         $html = $this->load->view('quotation_multiple_v', $data, TRUE);
-       // $this -> base_params($data);
+        $this -> base_params($data);
         
         
         $dompdf->load_html($html);

@@ -25,6 +25,7 @@
 
 	<table id ="sample_info_table" class = "reducedtext" >
 		<tr><td colspan = "6">&nbsp;</td></tr>
+		<thead>
 		<tr class = "plain_bold_inline gray centered" >
 			<td>Sample Name</td>
 			<td>Tests</td>
@@ -32,13 +33,31 @@
 			<td>Unit Cost (<?php echo $currency; ?>)</td>	
 			<td>Total Cost (<?php echo $currency; ?>)</td>
 		</tr>
-		<?php $key1 = 1; $key2 = 1; foreach($i_data as $v) { ?>
+		</thead>
+		<tbody>
+		<?php $i=0; $key1 = 1; $key2 = 1; foreach($i_data as $v) { ?>
 		<tr class = "<?php if($key2%2){ echo "zebra_striping";} ?> centered ">
 			<td><?php echo $v["Sample_Name"]; ?></td>
-			<td><?php foreach($v["Q_request_details"] as $t) {
-				//echo json_encode($t);
+			<td><?php 
+
+				//Check billing tables first and get relevant id
+				if($main_table == "Quotations"){
+					$qid = $v['Quotation_No'];
+				}else{
+					$qid=$reqid;
+				}
+
+
+				//var_dump($main_table);
+				//Get tests 
+				$tests = $billing_table::getAllTests($qid);
+				//var_dump($tests);
+
+				//Loop through tests
+				foreach($tests as $t) {
+				 //echo var_dump($t);
 					if($key1%2){
-							if($key1 != count($v["Q_request_details"])){
+							if($key1 != count($tests)){
 								$append = ", ";
 							}
 							else{
@@ -56,7 +75,7 @@
 			<td><?php echo number_format($v["Unit_Cost"], 2); ?></td>
 			<td><?php echo number_format($v["Total_Cost"], 2); ?></td>
 		</tr>
-		<?php $key2++; } ?>
+		<?php $key2++; $i++; } ?>
 		<?php $g = 0; 
 		foreach($xtra_columns as $k => $v) {?>
 		<tr class = "centered">
@@ -80,6 +99,7 @@
 			<tr>
 				<td colspan = "5" class = "plain_bold_inline"><hr></td>
 			</tr>
+			</tbody>
 			<?php $this -> load -> view("document_footer_v"); ?>
 	</table>
 </html>
