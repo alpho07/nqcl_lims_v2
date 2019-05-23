@@ -3,7 +3,13 @@
 			<p class="panel-heading">Edit <?php echo $test_name; ?> for <?php echo $quotations_id; ?></p>
 				<div class="column control is-4">
 					<div class="field">
-						<label class="label" >Compendia (<?php echo $current_compendium; ?>)</label>	
+						<label class ="label">Update For</label>
+						<p><input type="radio" name="batch_status" value="0" checked>&nbsp;<?php echo $test_name;?></p>
+						<p><input type="radio" name="batch_status" value="1">&nbsp;All Tests</p>
+					</div>
+					<div>&nbsp;</div>
+					<div class="field">
+						<label class="label" >Compendia (<?php echo str_replace("%", " ", $current_compendium_name); ?>)</label>	
 						<select class="select is-multiple" name="compendia">
 							<option value="">Select Compendia</option>
 								<?php foreach($compendia as $compendium){?>

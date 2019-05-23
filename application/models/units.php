@@ -30,12 +30,21 @@ class Units extends Doctrine_Record {
 
 	}//end setUp
 
-	public function getUnit($dept_id){
+	public static function  getUnit($dept_id){
 
 		$query = Doctrine_Query::create()
 		-> select("*")
 		-> from("units")
 		-> where("dept_id = ?", $dept_id);
+		$componentData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $componentData;
+	}
+
+	public static function getUnitFromId($id){
+		$query = Doctrine_Query::create()
+		-> select("*")
+		-> from("units")
+		-> where("id = ?", $id);
 		$componentData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
 		return $componentData;
 	}

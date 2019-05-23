@@ -243,7 +243,7 @@ $(document).ready(function(){
 			{"sTitle":"Compendia","mData":"compendia[].name",
 				"mRender":function(data, type, row){
 					if(row.compendia_id != null && row.compendia_id != '0'){
-						return '<a data-id = '+row.tests[0].id+' data-compendia = '+row.compendia_id+' data-name = '+row.tests[0].Name+' class = "editCompendia">'+data+'</a>';
+						return '<a data-id = '+row.tests[0].id+' data-compendia = '+row.compendia_id+' data-compendiaName ='+row.compendia[0].abbrev+' data-name = '+row.tests[0].Name+' class = "editCompendia">'+data+'</a>';
 					}
 					else{
 						return '<a data-id = '+row.tests[0].id+' data-compendia = '+row.compendia_id+' data-name = '+row.tests[0].Name+' class = "editCompendia">Add</a>';
@@ -459,9 +459,11 @@ $(document).ready(function(){
         test_id = $(this).attr('data-id') 
         test_name = $(this).attr('data-name');
         compendia = $(this).attr('data-compendia');
-
+        c_name = $(this).attr('data-compendiaName');
+  
         //Edit Ref
-        var cEditRef = '<?php echo base_url()."quotation/editCompendiaView/$rid" ?>/'+test_id+'/'+test_name+'/<?php echo $c; ?>/' + compendia
+        var cEditRef = '<?php echo base_url()."quotation/editCompendiaView/$rid" ?>/'+test_id+'/'+test_name+'/<?php echo $c; ?>/' + compendia + "/" + c_name
+
         console.log(cEditRef)
 
         //Open Fancybox with edit view

@@ -78,14 +78,26 @@ class Q_request_details extends Doctrine_Record {
 
 	public static function getAllTests($qid){
 		$query = Doctrine_Query::create()
-		-> select("t.Name, qr.id")
+		-> select("t.Name, qr.id, qr.compendia_id, c.*")
 		-> from("q_request_details qr")
 		-> leftJoin("qr.Tests t")
+		-> leftJoin("qr.compendia c")
 		-> where("quotations_id = ?" , $qid);
 		$testData = $query -> execute(array(), DOCTRINE::HYDRATE_ARRAY);
 		return $testData;
 	}
 
+
+	public static function getUniqueCompendia($qid){
+		$query = Doctrine_Query::create()
+		-> select("qr.id,c.*")
+		-> from("q_request_details qr")
+		-> leftJoin("qr.compendia c")
+		-> where("quotations_id = ?" , $qid)
+		-> groupBy("c.name");
+		$testData = $query -> execute(array(), DOCTRINE::HYDRATE_ARRAY);
+		return $testData;
+	}
 
 	public static function getChargesPerClient($rid){
 		$query = Doctrine_Query::create()

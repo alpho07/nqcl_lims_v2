@@ -35,16 +35,30 @@ class Quotation extends MY_Controller {
 
 	public function updateCompendia(){
 
+		//Status for if update all tests or this one test
+		$batch_status = $this->input->post('batch_status');
+
 		//Get unique identifiers
 		$qid = $this -> uri -> segment(3);
 		$test_id = $this -> uri -> segment(4);
 
 		//Get compendia
 		$compendia_id = $this -> input -> post('compendia');
+
+		//Check batch status
+		if($batch_status == 0){
+			$where_array = array('quotations_id'=> $qid, 'test_id'=>$test_id);
+		}else{
+			$where_array = array('quotations_id'=> $qid);
+		}
 		
 		//Update compendia
-		$this -> db -> where(array('quotations_id'=> $qid, 'test_id'=>$test_id));
+		$this -> db -> where($where_array);
 		$this -> db -> update('q_request_details', array('compendia_id' => $compendia_id));
+
+
+		//Invoke Invoice Tracking
+
 	}
 
 	public function saveQuotation(){
@@ -112,6 +126,7 @@ class Quotation extends MY_Controller {
 
 	public function editCompendiaView(){
 
+		$data['current_compendium_name'] =  $this -> uri -> segment(8);
 		$data['current_compendium'] =  $this -> uri -> segment(7);
 		$data['currency'] = $currency = $this -> uri -> segment(6);
 		$data['test_name'] = $this -> uri -> segment(5);
@@ -122,6 +137,7 @@ class Quotation extends MY_Controller {
 		//Get components and compendia
 		$data['components'] = Quotations_components::getComponentMethods($qid, $test_id, $currency);
 		$data['compendia'] = Compendia::getAll();
+
 
 
 		$data['content_view'] = "quotation_editCompendia_v";
@@ -251,6 +267,10 @@ class Quotation extends MY_Controller {
 
  		//Send to search function
  		$this->testSuggestions($term);
+ 	}
+
+ 	public function getCurrentUser(){
+ 		return $this->session->all_userdata();
  	}
 
  	public function editMethod(){
@@ -1842,6 +1862,8 @@ class Quotation extends MY_Controller {
 
 
 	public function printQuotation(){
+		//Get current user
+		$data['current_user'] = $this->getCurrentUser();
 
         //DOMpdf initialization
         require_once("application/helpers/dompdf/dompdf_config.inc.php");
@@ -1997,9 +2019,9 @@ class Quotation extends MY_Controller {
 		$data['tr_array'] = array('TOTAL COST'=>$adjusted_total);	
 		
 		//Push to view
-        $data['settings_view'] = "quotation_multiple_v";
+        //$data['settings_view'] = "quotation_multiple_v";
         $html = $this->load->view('quotation_multiple_v', $data, TRUE);
-        $this -> base_params($data);
+        //$this -> base_params($data);
         
         
         $dompdf->load_html($html);

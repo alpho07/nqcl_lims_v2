@@ -318,6 +318,7 @@ public function submit() {
 			));
 
 			$custom_session_data = array(
+						'title' => $userdata[0]['title'],
                         'full_name'=>$userdata[0]['fname']." ".$userdata[0]['lname'],
                         'username' => $userdata[0]['email'],
 			            'usertype_id' => $userdata[0]['Users_types'][0]['usertype_id'],
@@ -326,6 +327,8 @@ public function submit() {
 			            'user_unit' => $userdata[0]['Users_types'][0]['User_type'][0]['unit'],
 						'user_tier' => $userdata[0]['Users_types'][0]['User_type'][0]['tier'],
 			            'user_id' =>  $userdata[0]['id'],
+			            'user_tel'=> $userdata[0]['telephone'],
+			            'user_email'=> $userdata[0]['email'],
 			            'user_views' => $userviews);
 			$this -> session -> set_userdata($custom_session_data);
                      

@@ -27,17 +27,18 @@
 		<tr><td colspan = "6">&nbsp;</td></tr>
 		<thead>
 		<tr class = "plain_bold_inline gray centered" >
-			<td>Sample Name</td>
+			<td>Product</td>
 			<td>Tests</td>
+			<td>Compendia</td>
+			<td>Cost per Batch (<?php echo $currency; ?>)</td>	
 			<td>No. of Batches</td>
-			<td>Unit Cost (<?php echo $currency; ?>)</td>	
 			<td>Total Cost (<?php echo $currency; ?>)</td>
 		</tr>
 		</thead>
 		<tbody>
 		<?php $i=0; $key1 = 1; $key2 = 1; foreach($i_data as $v) { ?>
 		<tr class = "<?php if($key2%2){ echo "zebra_striping";} ?> centered ">
-			<td><?php echo $v["Sample_Name"]; ?></td>
+			<td><?php echo strtoupper($v["Sample_Name"]); ?></td>
 			<td><?php 
 
 				//Check billing tables first and get relevant id
@@ -71,35 +72,53 @@
 					$key1++;
 			} ?>
 			</td>
-			<td><?php echo $v["No_Of_Batches"]; ?></td>
+			<td><?php 
+
+				$compendia=$billing_table::getUniqueCompendia($v['Quotation_No']); 
+				
+				//initialize array to hold compendia
+				$cmpnd = array();
+
+				//loop through unique compendia
+				foreach($compendia as $co){
+					array_push($cmpnd, $co['compendia'][0]['abbrev']); 
+				}
+
+				//list compendia separated by slash
+				echo implode("&nbsp;/&nbsp;", $cmpnd);
+
+
+			 ?></td>
 			<td><?php echo number_format($v["Unit_Cost"], 2); ?></td>
+			<td><?php echo $v["No_Of_Batches"]; ?></td>
 			<td><?php echo number_format($v["Total_Cost"], 2); ?></td>
 		</tr>
 		<?php $key2++; $i++; } ?>
 		<?php $g = 0; 
 		foreach($xtra_columns as $k => $v) {?>
 		<tr class = "centered">
-			<td colspan = "3"></td>
+			<td colspan = "4"></td>
 			<td><?php echo ucwords(str_replace("_", " ",$k)); if($extra_columns[$g++]['comment'] == '%'){ echo '&nbsp;('.$percentage_a[$k].'%)'; } ?></td>
 			<td><?php if($k == 'discount'){ echo '('. number_format($v,2) .')'; } else{ echo number_format($v,2); } ?></td>
 		</tr>
 		<?php }?>
 		<tr>
-			<td colspan = "2"></td>
-			<td colspan = "3"><hr></td>
+			<td colspan = "3"></td>
+			<td colspan = "4"><hr></td>
 		</tr>
 		
 			<tr class = "plain_bold_inline centered" >
-				<td colspan = "3" ></td>
+				<td colspan = "4" ></td>
 				<td>Total Cost (<?php echo $currency; ?>)</td>
 				<?php foreach($tr_array as $k => $v){ ?>
 					<td ><?php echo number_format($v,2); ?></td>
 				<?php }?>
 			</tr>
 			<tr>
-				<td colspan = "5" class = "plain_bold_inline"><hr></td>
+				<td colspan = "6" class = "plain_bold_inline"><hr></td>
 			</tr>
 			</tbody>
-			<?php $this -> load -> view("document_footer_v"); ?>
+			</table>
 	</table>
+	<?php $this -> load -> view("document_footer_v"); ?>
 </html>
