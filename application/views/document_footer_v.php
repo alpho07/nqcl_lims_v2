@@ -1,7 +1,7 @@
 <div class="quotation_notes">
 	<p><strong>Please Note</strong></p>
 	<?php foreach($default_notes as $dn){ ?>
-		<?php if($dn['note_id'] == 0) { echo "<p>".$dn['system_note'] ."</p>"; } else{ echo "<p>&nbsp;".$dn['system_note'] ."</p>"; } ?>
+		<?php if($dn['note_id'] == 0) { echo "<p>".$dn['id'].".".$dn['system_note'] ."</p>"; } else{ echo "<p>&nbsp;".$dn['system_note'] ."</p>"; } ?>
 	<?php }?>	
 </div>
 <div class="spacer">&nbsp;</div>

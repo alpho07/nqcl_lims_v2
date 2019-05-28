@@ -75,6 +75,7 @@ class Quotations extends Doctrine_Record {
 	}
 
 
+
 	public static function getDetailsForQuotation($qid){
 		$query = Doctrine_Query::create()
 		-> select('no_of_batches, quotation_id')
@@ -85,6 +86,30 @@ class Quotations extends Doctrine_Record {
 	}
 
 
+	//get products in this quotation
+	public static function getProductsInQuotation($quotation_no){
+		$query = Doctrine_Query::create()
+		-> select('quotations_id, sample_name as product')
+		-> from("quotations")
+		-> where("quotation_no =?", $quotation_no)
+		-> groupBy("sample_name");
+		$products = $query -> execute() -> toArray();
+		return $products;
+	}
+
+	//get product details in batch
+	public static function getBatchDetails($quotations_id){
+
+		$query = Doctrine_Query::create()
+		-> select('q.quotations_id, q.sample_name as product, r.id, r.test_id, t.name as test_name')
+		-> from("Quotations q")
+		-> leftJoin("q.Q_request_details r")
+		-> leftJoin("r.Tests t")
+		-> where("q.quotations_id =?", $quotations_id)
+		-> groupBy("r.test_id");
+		$batches = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $batches;		
+	}
  
 	public static function getQuotationSummary($q_no){
 		$query = Doctrine_Query::create()

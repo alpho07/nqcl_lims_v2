@@ -80,12 +80,21 @@
 				$cmpnd = array();
 
 				//loop through unique compendia
-				foreach($compendia as $co){
-					array_push($cmpnd, $co['compendia'][0]['abbrev']); 
-				}
+					foreach($compendia as $co){
+						if(!empty($co['compendia'])){
+							array_push($cmpnd, $co['compendia'][0]['abbrev']); 
+						}
+					}
+				
+
 
 				//list compendia separated by slash
-				echo implode("&nbsp;/&nbsp;", $cmpnd);
+				if(!empty($cmpnd)){
+					echo implode("&nbsp;/&nbsp;", $cmpnd);
+				}else{
+					echo "USPNF";
+				}
+				
 
 
 			 ?></td>

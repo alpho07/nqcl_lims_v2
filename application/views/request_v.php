@@ -216,12 +216,9 @@
             <td><span class = "misc-title smalltext gray_out">Payment Details<hr></span></td>
         </tr>
 
-        <tr>
-            <td>Quotation No.</td>
-            <td><input name = "quotation_no"  title="Enter Quotation Number" id = "quotation_no" class = "validate[required]" placeholder="e.g Q-18-01-16-14-1" ></td>
-
-            <td>Receipt No.</td>
-            <td><input type="text" id="receipt_no" name="receipt_no" class = "validate[required]" placeholder="e.g R-18-01"></td>
+        <tr id="quotation_details">
+            <td>Quotation Number</td>
+            <td id="quotation_no"></td>s
         </tr>
 
         <tr id = "dateformatitle">
@@ -603,7 +600,18 @@
         </div>
     </div>
 </form>
+<!--Load React Scripts here , assumed end of html body-->
 
+<!--React Source-->
+<script src="https://unpkg.com/react@16.8.6/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@16.8.6/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-autosuggest/dist/standalone/autosuggest.js"></script>
+
+<!--React Component Script-->
+
+<script src="<?php echo base_url() . 'javascripts/quotations_react_component.js' ?>" type="module" ></script>
+
+<!--End of React Scripts-->
 <script language="JavaScript" type="text/javascript">
 $(document).ready(function(){
 	date  = $.datepicker.formatDate('yy/mm/dd', new Date());

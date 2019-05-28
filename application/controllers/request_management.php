@@ -38,6 +38,40 @@ class Request_Management extends MY_Controller {
         }
     }
 
+
+
+    /*function GetAutocompleteQuotationNo($options = array()) {
+        $this->db->distinct();
+        $this->db->select('quotation_no');
+        $this->db->like('quotation_no', $options['quotation_no'], 'after');
+        $query = $this->db->get('quotations');
+        return $query->result();
+    }
+
+    function quotationNo_suggestions() {
+
+        $term = $this->input->post('quotation_no', TRUE);
+        $rows = $this->GetAutocompleteQuotationNo(array('quotation_no' => $term));
+        $keywords = array();
+        foreach ($rows as $row)
+            array_push($keywords, $row->active_ing);
+        echo json_encode($keywords);
+    }*/
+
+    //Get products in this quotation
+    public function getProductsForThisQuotation($quotation_no){
+        $quotation_no = $this->uri->segment(3);
+        $products = Quotations::getProductsInQuotation($quotation_no);
+        return $this->getJsonString($products);        
+    }
+
+    //Get product details for this batch
+    public function getProductDetailsForThisBatch($quotations_id){
+        $quotations_id = $this->uri->segment(3);
+        $product_details = Quotations::getBatchDetails($quotations_id);
+        return $this->getJsonString($product_details);
+    }
+
     public function documentationReport() {
         //Default period is six months from now
         $e = date('Y-m-d');

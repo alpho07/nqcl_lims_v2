@@ -46,6 +46,22 @@ class MY_Controller extends CI_Controller {
 
     }
 
+    //getJsonString
+    function getJsonString($array){
+
+        //Check if array is empty , push into simpler array and return json string
+        if($array){
+            foreach($array as $value){
+                $data[] = $value;
+            }           
+        }else{
+            $data[] = "";
+        }
+
+        //return json string
+        echo json_encode($data);
+    }
+
 
     function getAllClientInfo($client_id){
         
