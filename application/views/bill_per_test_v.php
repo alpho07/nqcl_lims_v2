@@ -131,10 +131,10 @@ $quotation_status = $quotation_status[0]['Quotation_status'];
 
 			</ul>
 			<span>
-					<input id="<?php echo $info_doc ?>_approve" type = "button" data-submitId = "<?php echo $info_doc ?>_approve" class = "submit-button leftie print_invoice" value = "Approve <?php echo $info_doc ?>" data-table = "<?php echo $table; ?>">
+					<input id="<?php echo $info_doc ?>_approve" type = "button" data-submitId = "<?php echo $info_doc ?>_approve" class = "submit-button leftie print_invoice" value = "Approve <?php echo ucfirst($info_doc) ?>" data-table = "<?php echo $table; ?>">
 			</span>
 			<span>
-					<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show <?php echo $info_doc ?>s" data-table = "<?php echo $table; ?>">
+					<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show <?php echo ucfirst($info_doc) ?>(s)" data-table = "<?php echo $table; ?>">
 			</span>
 	</form>
 </div>
@@ -530,11 +530,11 @@ $('.print_invoice').on("click", function(){
 			save_url = '<?php echo base_url()."quotation/saveQuotation/$rid/$table/$table2/$table3/"; ?>'
 		}
 		else if(submit_id == 'invoice_approve'){
-			save_url = '<?php echo base_url()."quotation/approveInvoice/$request_id/$rid"; ?>',
+			save_url = '<?php echo base_url()."quotation/approveQuotation/$request_id/$rid/$info_doc"; ?>',
 			href = '#'
 		}
 		else if(submit_id == 'quotation_approve'){
-			save_url = '<?php echo base_url()."quotation/approveQuotation/$request_id/$rid"; ?>',
+			save_url = '<?php echo base_url()."quotation/approveQuotation/$request_id/$rid/$info_doc"; ?>',
 			href = '#'
 		}
 	}

@@ -151,7 +151,7 @@ public function showBillPerTest(){
 	//Get client id
 	$data['client_id']  = $this -> uri -> segment(10);
 	
-	$data['source'] = $this -> uri -> segment(8);
+	$data['source'] = $source = $this -> uri -> segment(8);
 	$data['request_id'] = $this -> uri -> segment(9);
 
 	//Get show client info status
@@ -180,13 +180,25 @@ public function showBillPerTest(){
 	
 	//Get Quotation Entries
 	$qn = Quotations::getQuotationNumber2($rid);
-	$data['entries'] = Quotations::getNoOfEntries($qn[0]['Quotation_no']);
-	$data['completed'] = Quotations::getCompletedEntries($qn[0]['Quotation_no']);
+	var_dump($qn);
+	echo $rid;
+	//$data['entries'] = Quotations::getNoOfEntries($qn[0]['Quotation_no']);
+	//$data['completed'] = Quotations::getCompletedEntries($qn[0]['Quotation_no']);
 	$data['qt_no'] = $qn[0]['Quotation_no'];
 	$data['qt_id'] = $qn[0]['Quotation_id'];
 
 	//Get quotation status
-	$data['quotation_status'] = Quotations::getQuotationStatus($rid);
+	if($source == 'quotation'){
+		$data['quotation_status'] = $status = Quotations::getQuotationStatus($rid);
+		$approvalStatus = $status[0]['quotation_status'];
+	}
+	else{
+		$data['quotation_status'] = $status = Request::getInvoiceStatus($rid);
+		$approvalStatus = $status[0]['invoice_status'];
+	}
+
+	//Check Status
+	var_dump($status);
 
 	//Extract Invoice Id
 	$invoice_id = substr($rid, 0, -2);
@@ -196,14 +208,23 @@ public function showBillPerTest(){
 
 	//Is Invoice or Quotation
 	$invoiceStatus = $this->db->query("SELECT stage FROM `invoice_tracking` WHERE stage LIKE '%invoice%'");
-	$inv_status = $invoiceStatus->result_array();
+	/*$inv_status = $invoiceStatus->result_array();
 		if($inv_status){
 			$data['info_doc'] = 'invoice';	
 		}
 		else{
 			$data['info_doc'] = 'quotation';
-		}
+		}*/
+	//Is Invoice or Quotation
 	
+	if($approvalStatus >= 2){
+		$data['info_doc'] = $source;
+		$data['info_doc_suffix'] = 'print';
+	}else{
+		$data['info_doc'] = $source;
+		$data['info_doc_suffix'] = 'approve';
+	}
+
 	//Set view, load it
 	$data['content_view'] = 'bill_per_test_v';
 	$this -> load -> view('template_next', $data);	

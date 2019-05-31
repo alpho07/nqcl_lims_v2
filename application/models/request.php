@@ -219,6 +219,15 @@ class Request extends Doctrine_Record {
         return $invoiceData;
     }
 
+    public static function getInvoiceStatus($reqid){
+        $query = Doctrine_Query::create()
+        ->select("r.invoice_status")
+        ->from("request r")
+        ->where("request_id =?", $reqid);
+        $requestData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+        return $requestData;
+    }
+
     public static function getInvoiceDetailsPerClient($client_id, $date_received, $proforma_no) {
         $query = Doctrine_Query::create()
                 ->select("r.request_id as LABORATORY_REF_NO,c.Name as Client_Name, c.Address as Client_Address, r.clientsampleref as CLIENT_REF_NO, r.id,r.product_name as PRODUCT, r.batch_no as BATCH_NO, coa.full_number as CERTIFICATE_NO, ,

@@ -1282,7 +1282,7 @@ class Quotation extends MY_Controller {
 			}
 
 			//Set notes
-			$notes = "Reverse engineered quotation from existing analysis request.";
+			$notes = "Reverse engineered invoice from existing analysis request.";
 
 			//Add Invoice Tracking
 			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
@@ -1592,7 +1592,7 @@ class Quotation extends MY_Controller {
 			$this->db->update('quotations_final', array('discount'=>$invoice_discount, 'payable_amount'=>$payable_amount));
 
 
-			//Send to person with corresponding coa
+			//Send to person with corresponding coa*
 			
 
 			$notes = "Approved Invoice";
@@ -1611,29 +1611,32 @@ class Quotation extends MY_Controller {
 			//Get identifier
 			$request_id =  $this->uri->segment(3);
 			$inv_id = $this->uri->segment(4);
+			$source = $this->uri->segment(5);
 
 			//Extract Invoice Id
 			$invoice_id = substr($inv_id, 0, -2);
 
 			//Update request table
-			$this->db->where('request_id', $request_id);
-			$this->db->update('request', array('invoice_status'=>2));
+			if($source == 'invoice'){
+				$this->db->where('request_id', $request_id);
+				$this->db->update('request', array('invoice_status'=>2));
+				$q_amount = Quotations_final::getAmount($invoice_id);
+				$quotation_no = $invoice_id;
+		
+			} else if($source == 'quotation'){
+				$this->db->where('quotation_id', $inv_id);
+				$this->db->update('quotations', array('quotation_status'=>2));
+				$q_amount = Quotations_final::getAmount($request_id);
+				$quotation_no = $request_id;
+			}
 
-			//Update Invoice
-			$this->db->where('request_id', $request_id);
-			$this->db->update('request', array('invoice_status'=>2));	
-
-			//Get amount
-			$q_amount = Quotations_final::getAmount($request_id);
 			$total = $q_amount[0]['amount'];
 			$payable_amount = $total;
 			$b_total = Q_request_details::getBatchTotal($inv_id);
 		    $batch_total = $b_total[0]['sum']; ;
-		    $quotation_no = $request_id;
-
-
+		   
 			//Send to person with corresponding coa
-			$notes = "Approved Quotation";
+			$notes = "Approved ". ucfirst($source);
 
 			//Add Tracking
 			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
