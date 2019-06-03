@@ -152,7 +152,7 @@ public function showBillPerTest(){
 	$data['client_id']  = $this -> uri -> segment(10);
 	
 	$data['source'] = $source = $this -> uri -> segment(8);
-	$data['request_id'] = $this -> uri -> segment(9);
+	$data['request_id'] = $request_id = $this -> uri -> segment(9);
 
 	//Get show client info status
 	if($this->uri->segment(10)){
@@ -180,8 +180,8 @@ public function showBillPerTest(){
 	
 	//Get Quotation Entries
 	$qn = Quotations::getQuotationNumber2($rid);
-	var_dump($qn);
-	echo $rid;
+	//var_dump($qn);
+	//echo $rid;
 	//$data['entries'] = Quotations::getNoOfEntries($qn[0]['Quotation_no']);
 	//$data['completed'] = Quotations::getCompletedEntries($qn[0]['Quotation_no']);
 	$data['qt_no'] = $qn[0]['Quotation_no'];
@@ -190,15 +190,15 @@ public function showBillPerTest(){
 	//Get quotation status
 	if($source == 'quotation'){
 		$data['quotation_status'] = $status = Quotations::getQuotationStatus($rid);
-		$approvalStatus = $status[0]['quotation_status'];
+		$approvalStatus = $status[0]['Quotation_status'];
 	}
 	else{
-		$data['quotation_status'] = $status = Request::getInvoiceStatus($rid);
+		$data['quotation_status'] = $status = Request::getInvoiceStatus($request_id);
 		$approvalStatus = $status[0]['invoice_status'];
 	}
 
 	//Check Status
-	var_dump($status);
+	var_dump($source);
 
 	//Extract Invoice Id
 	$invoice_id = substr($rid, 0, -2);
@@ -224,6 +224,9 @@ public function showBillPerTest(){
 		$data['info_doc'] = $source;
 		$data['info_doc_suffix'] = 'approve';
 	}
+
+	//Send approval status to view
+	$data['approvalStatus'] = $approvalStatus;
 
 	//Set view, load it
 	$data['content_view'] = 'bill_per_test_v';

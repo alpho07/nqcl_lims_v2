@@ -1174,6 +1174,7 @@ class Quotation extends MY_Controller {
 			$q_f -> quotation_entries = 1;
 			$q_f -> quotation_no = $quotation_no;
 			$q_f -> client_id = $client_no;
+			$q_f -> source_status = 'system_re';
 			$q_f -> currency = $cur;
 			$q_f -> save();
 
@@ -1624,7 +1625,7 @@ class Quotation extends MY_Controller {
 				$quotation_no = $invoice_id;
 		
 			} else if($source == 'quotation'){
-				$this->db->where('quotation_id', $inv_id);
+				$this->db->where('quotation_id', $invoice_id);
 				$this->db->update('quotations', array('quotation_status'=>2));
 				$q_amount = Quotations_final::getAmount($request_id);
 				$quotation_no = $request_id;

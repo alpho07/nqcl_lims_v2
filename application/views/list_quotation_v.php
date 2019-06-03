@@ -45,12 +45,12 @@
 			},
 			{"sTitle":"Source","mData":"Quotations_final[].source_status",
 				"mRender": function ( data, type, row ) {
-					if(data == 0){
+					if(data == 'system'){
 						return '<span class="tag is-light">System</span>';
 					}
-					else if(data == 1){
+					else if(data == 'client_new'){
 						return '<span class="tag is-warning">Client New</span>';
-					}else if(data == 2){
+					}else if(data == 'client'){
 						return '<span class="tag is-info">Client</span>';
 					}
 				},

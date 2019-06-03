@@ -348,6 +348,7 @@ public static function getSample($reqid) {
 		-> select("q.id, q.client_number as client_id, q.quotation_date, q.client_email, q.client_name, q.quotation_no, q.currency, qf.amount, qf.reporting_fee, qf.admin_fee, qf.discount, qf.payable_amount, qf.quotation_entries, qf.print_status, qf.source_status, qs.status") 
 		-> from("quotations q")
 		-> leftJoin("q.Quotations_final qf")
+		-> where("qf.source_status = 'system'")
 		-> leftJoin("qf.Quotation_status qs")
 		-> orderBy("id DESC")
 		-> groupBy("qf.id");

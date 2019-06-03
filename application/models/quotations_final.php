@@ -16,7 +16,7 @@ class Quotations_final extends Doctrine_Record {
 		$this->hasColumn('signatory_title', 'varchar', 40);
 		$this->hasColumn('signatory_name', 'varchar', 40);
 		$this->hasColumn('print_status', 'int', 11);
-		$this->hasColumn('source_status', 'int', 11);
+		$this->hasColumn('source_status', 'varchar', 50);
 	}
 
 	public function setUp() {

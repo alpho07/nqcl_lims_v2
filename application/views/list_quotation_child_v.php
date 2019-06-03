@@ -125,7 +125,7 @@
 			quotation_no = row.data().Quotations_id;
 			
 			e.preventDefault();
-            var href = '<?php echo base_url() . "client_billing_management/showBillPerTest/" ?>'+quotation_no+'/quotations/tests/q_request_details/q_entry/invoice/'+'<?php echo $quotation_no; ?>';
+            var href = '<?php echo base_url() . "client_billing_management/showBillPerTest/" ?>'+quotation_no+'/quotations/tests/q_request_details/q_entry/quotation/'+'<?php echo $quotation_no; ?>';
 
 
 			console.log(href);
@@ -146,7 +146,7 @@
 
             
             childTable.on( 'draw', function ( e, settings, json ) {
-    			document.location.href = "http://localhost/NQCL/quotation/listall";
+    			//document.location.href = "http://localhost/NQCL/quotation/listall";
 			});
 			
         })

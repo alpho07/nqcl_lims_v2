@@ -6,9 +6,9 @@
 $c = $currency[0]['Currency']; 
 
 //Set quotation status
-$quotation_status = $quotation_status[0]['Quotation_status'];
-?>
+$quotation_status = $approvalStatus;
 
+?>
 <hr>
 <!--Check if invoice review stage, if yes show client details-->
 <?php if($clientInfoStatus) {  ?>
@@ -65,7 +65,7 @@ $quotation_status = $quotation_status[0]['Quotation_status'];
 					<div>
 						&nbsp;
 					</div>
-	<?php if($source == 'quotation'){?>
+	<?php if($source == 'oldview'){?>
 <div class = "container">
 	<form class = "methods">
 		<ul style="margin-left: 5px" >
@@ -87,7 +87,7 @@ $quotation_status = $quotation_status[0]['Quotation_status'];
 			</li>
 		</ul>
 	</form>
-	<?php } else if($source == 'invoice') {?>
+	<?php } else if($source == 'invoice' || $source == 'quotation' ) {?>
 
 		<form class = "methods">
 			<ul style="margin-left: 5px" >
@@ -130,12 +130,14 @@ $quotation_status = $quotation_status[0]['Quotation_status'];
 			
 
 			</ul>
-			<span>
-					<input id="<?php echo $info_doc ?>_approve" type = "button" data-submitId = "<?php echo $info_doc ?>_approve" class = "submit-button leftie print_invoice" value = "Approve <?php echo ucfirst($info_doc) ?>" data-table = "<?php echo $table; ?>">
-			</span>
-			<span>
-					<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show <?php echo ucfirst($info_doc) ?>(s)" data-table = "<?php echo $table; ?>">
-			</span>
+			<?php if($approvalStatus <2) { ?>
+				<span>
+						<input id="<?php echo $info_doc ?>_approve" type = "button" data-submitId = "<?php echo $info_doc."_".$info_doc_suffix ?>" class = "submit-button leftie print_invoice" value = "<?php echo ucfirst($info_doc_suffix)." ".ucfirst($info_doc); ?>" data-table = "<?php echo $table; ?>">
+				</span>
+				<span>
+						<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show <?php echo ucfirst($info_doc) ?>(s)" data-table = "<?php echo $table; ?>">
+				</span>
+			<?php }?>
 	</form>
 </div>
 </div>
@@ -145,6 +147,13 @@ $quotation_status = $quotation_status[0]['Quotation_status'];
 <script type="text/javascript">
 
 $(document).ready(function(){
+
+	var status = '<?php echo $approvalStatus; ?>';
+	console.log(status);
+	if(status>=2){
+		console.log($('.rowDetails a').css("pointer-events", "none"));
+	}
+
 
 	//Get quotation status
 	var quotation_status = '<?php echo $quotation_status; ?>'
@@ -266,6 +275,20 @@ $(document).ready(function(){
 			"columnDefs":[
 				{"className": "dt-center", "targets": "_all"}
 			],
+		"initComplete":function(settings, json){
+			var status = '<?php echo $approvalStatus; ?>';
+			if(status>=2){
+				$('a').on("click", function(){
+					$.fancybox.open(
+						'<div class="notification is-warning"><h2>Editing Disabled</h2><p><?php echo ucfirst($info_doc)." "; ?> Approved, cannot be edited.</p></div>'
+	 				);
+					return false;
+				});
+
+				//Disable Buttons
+				console.log(ttable.buttons().disable());
+			}		
+		},
 		"bJQueryUI":true,
 		"bScrollCollapse":true,
 		"bDeferRender":true,
@@ -423,7 +446,7 @@ $(document).ready(function(){
 		
 	})
 
-
+	//Disable
 
 	$('#breakdown tbody').on("click", "a.editTest", function(e){
 		e.preventDefault();
@@ -532,6 +555,14 @@ $('.print_invoice').on("click", function(){
 		else if(submit_id == 'invoice_approve'){
 			save_url = '<?php echo base_url()."quotation/approveQuotation/$request_id/$rid/$info_doc"; ?>',
 			href = '#'
+		}
+		else if(submit_id == 'invoice_print'){
+			save_url = '<?php echo base_url()."quotation/approveQuotation/$request_id/$rid/$info_doc"; ?>',
+			href = '#'
+		}
+		else if(submit_id == 'quotation_print'){
+			href = '<?php echo base_url()."quotation/quotationExtras/$qt_no/$table/$table2/$table3/"; ?>'
+			save_url = '<?php echo base_url()."quotation/saveQuotation/$rid/$table/$table2/$table3/"; ?>'	
 		}
 		else if(submit_id == 'quotation_approve'){
 			save_url = '<?php echo base_url()."quotation/approveQuotation/$request_id/$rid/$info_doc"; ?>',
