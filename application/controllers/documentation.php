@@ -163,7 +163,6 @@ class Documentation extends MY_Controller {
         $data['settings_view'] = 'documents_v_director';
         $data['title'] = "Sample From Director";
         $data['documentation_data'] = $this->getDataFromDirector();
-
         $this->base_params($data);
     }
     

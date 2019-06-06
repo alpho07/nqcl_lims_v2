@@ -111,11 +111,34 @@ class Q_request_details extends Doctrine_Record {
 		return $clientData;
 	}
 
+	public static function getChargesPerClientInvoice($rid){
+		$query = Doctrine_Query::create()
+		-> select("q.*, t.*, m.*, c.*")
+		-> from("q_request_details q")
+		-> leftJoin("q.Tests t")
+		-> leftJoin("q.compendia c")
+		-> leftJoin("t.Test_methods m")
+		-> where("q.quotations_id =?", $rid);
+		$clientData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $clientData;
+	}
+
 	public static function getTotal($rid){
 		$query = Doctrine_Query::create()
 		-> select('c.*, m.*, t.*, sum(c.method_charge)')
 		-> from("q_request_details c")
 		-> where("c.quotation_id =?", $rid)
+		-> leftJoin("c.tests t")
+		-> leftJoin("c.test_methods m");
+		$clientData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $clientData;	
+	}
+
+	public static function getTotalInvoice($rid){
+		$query = Doctrine_Query::create()
+		-> select('c.*, m.*, t.*, sum(c.method_charge)')
+		-> from("q_request_details c")
+		-> where("c.quotations_id =?", $rid)
 		-> leftJoin("c.tests t")
 		-> leftJoin("c.test_methods m");
 		$clientData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);

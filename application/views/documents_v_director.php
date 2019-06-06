@@ -117,7 +117,34 @@
                        
 
                         <td><?php echo anchor('coa/generateCoa_final/' . $sheets->labref, 'COA Ver. 2') ?> &nbsp;  &nbsp; <?php //echo anchor('reviewer_uploads/'.$sheets->labref.".xlsx" ,'Download Worksheet')  ?></td>
-                        <td><?php echo anchor('coa/generatecoa_invoice/' . $sheets->labref.'/INVOICE/', 'Invoice',array('target'=>'_blank')) ?>  || <?php echo anchor('coa/clean/' . $sheets->labref.'/INVOICE/', 'Clean',array('target'=>'_blank')) ?></td>
+                        <td><?php 
+
+                            //get client id
+                            $clientData = Request::getClientId($sheets->labref);
+                            if(!empty($clientData)){
+                               $clientId = $clientData[0]['client_id']; 
+                           }else{
+                                $clientId = 0;
+                           }
+                            
+
+                            //get invoice status
+                            $invoiceData = Request::getInvoiceStatus($sheets->labref);
+                            if(!empty($invoiceData)){
+                                $invoiceStatus = $invoiceData[0]['invoice_status'];
+                            }else{
+                                $invoiceStatus = 0;
+                            }
+                            
+                            if($invoiceStatus >= 2){
+                                   echo anchor('client_billing_management/showBillPerTest/INV-'.$sheets->labref.'-1/quotations/tests/q_request_details/q_entry/invoice/'.$sheets->labref.'/'.$clientId.'/undefined/final', 'View',array('target'=>'_blank'));
+                            }else{
+                                    echo "--";
+                            }
+
+
+                        ?>
+                        </td>
 						<td><?php echo anchor('approved_drafts/'.$sheets->labref.".docx" ,'Download Approved COA')  ?></td>
                         <td><?php echo anchor('upload/final_coa_upload/' . $sheets->labref, 'Final COA') ?> &nbsp;  &nbsp; <?php //echo anchor('reviewer_uploads/'.$sheets->labref.".xlsx" ,'Download Worksheet')  ?></td>
                         <td style="background: yellow; font-weight: bolder;"><a  style="color: black; text-decoration: blink; "  class="inline1" href="#data" id="<?php echo $sheets->labref; ?>" >Submit COA to..</a><input type="hidden" id="labref_no"  value="<?php echo $sheets->labref; ?>"/></td>

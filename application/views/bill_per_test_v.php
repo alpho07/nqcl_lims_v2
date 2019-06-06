@@ -1,4 +1,5 @@
 
+<div class="container">	
 <div><legend><span class = "link_highlight" >Charges Breakdown&nbsp;|&nbsp;<?php echo $rid; ?>&nbsp;|&nbsp;Total</span><span id = "total" ></span><?php if($source == 'invoice' && !empty($tracking_info)){?> &nbsp;|&nbsp;Discount&nbsp;<span id="title_discount"><?php echo $tracking_info[0]['discount']." %" ?></span>&nbsp;|&nbsp;Payable&nbsp;<span id="title_payable_amount"></span> <?php } ?></legend></div>
 <div><input type="hidden" name="totalSansKes" id="total_sansKES"></div>
 <?php
@@ -12,7 +13,7 @@ $quotation_status = $approvalStatus;
 <hr>
 <!--Check if invoice review stage, if yes show client details-->
 <?php if($clientInfoStatus) {  ?>
-	<div class="container">					
+					
 			<ul class="menu-list">
 				<li>
 					<fieldset class="box">
@@ -137,7 +138,11 @@ $quotation_status = $approvalStatus;
 				<span>
 						<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show <?php echo ucfirst($info_doc) ?>(s)" data-table = "<?php echo $table; ?>">
 				</span>
-			<?php }?>
+			<?php } else if($approvalStatus >= 2 && $finalStage == true){?>
+				<span>
+						<input id="print_final" type = "button" data-submitId = "print_final" class = "submit-button leftie print_invoice" value = "Print to PDF" data-table = "<?php echo $table; ?>">
+				</span>
+			<?php } ?>
 	</form>
 </div>
 </div>
@@ -568,6 +573,10 @@ $('.print_invoice').on("click", function(){
 			save_url = '<?php echo base_url()."quotation/approveQuotation/$request_id/$rid/$info_doc"; ?>',
 			href = '#'
 		}
+		else if (submit_id == 'print_final'){
+			save_url = '<?php echo base_url()."coa/generatecoa_invoice2/$request_id/$rid/$info_doc"; ?>',
+			href = '<?php echo base_url()."invoices/" ?>'+ "Invoice_" + '<?php echo $rid; ?>'+ ".pdf";
+		}
 	}
 	else if(table == "invoice"){
 		href = '<?php echo base_url()."quotation/invoiceExtras/$rid/$table/$table2/$table3/"; ?>'
@@ -584,7 +593,8 @@ $('.print_invoice').on("click", function(){
 		}).done(function(response){
 
 			//Depending on button clicked redirect appropriately
-			if(submit_id =='print_now'){
+			if(submit_id =='print_final'){
+				console.log(href);
 				parent.$.fancybox.open({
 			        href: href,
 			        type: 'iframe',

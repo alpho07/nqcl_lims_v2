@@ -208,6 +208,17 @@ class User extends Doctrine_Record {
 		return $sig;
 	}
 
+	public static function getDirectorDetails(){
+		$query = Doctrine_Query::create()
+		->select("u.*, ut.*")
+		->from("User u")
+		->leftJoin("u.Users_types ut")
+		->where('ut.usertype_id = ?', 8) 
+		->orderBy('u.id','DESC')
+		->limit('1');
+		$directorData =  $query -> execute(array(), DOCTRINE::HYDRATE_ARRAY);
+		return $directorData;
+	}
 
 
 	public static function getAllSupervisors() {

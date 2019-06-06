@@ -162,6 +162,13 @@ public function showBillPerTest(){
 		$data['clientInfoStatus'] = 0;	
 	}
 
+	//Get if invoice is in final stage of printing
+	if($this->uri->segment(11)){
+		$data['finalStage'] = true;
+	}else{
+		$data['finalStage'] = false;
+	}
+
 	//Get list of eligible signatories
 	$data['signatories'] = User::getSignatories();
 
@@ -196,9 +203,6 @@ public function showBillPerTest(){
 		$data['quotation_status'] = $status = Request::getInvoiceStatus($request_id);
 		$approvalStatus = $status[0]['invoice_status'];
 	}
-
-	//Check Status
-	var_dump($source);
 
 	//Extract Invoice Id
 	$invoice_id = substr($rid, 0, -2);

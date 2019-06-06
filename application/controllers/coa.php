@@ -100,6 +100,14 @@ class Coa extends MY_Controller {
      }
 	
 	  function generateCoa_invoice2($labref) {
+       //require_once("application/helpers/dompdf/dompdf_config.inc.php");
+        $this->load->helper('file');
+
+        //DOMpdf configuration
+        $dompdf = new DOMPDF();
+        $dompdf->set_paper('A4');
+
+
         // error_reporting(1);
         error_reporting(1);
         $data['s4'] =   $this->uri->segment(4);
@@ -112,15 +120,18 @@ class Coa extends MY_Controller {
 		
 		//Get NDQ Number
 		$data['reqid'] = $labref;
+
+        //Get temp invoice number
+        $invoice_id = 'INV-'.$labref.'-1';
 		
 		//Get Invoice Data to go to pdf print
-		$data['test_data'] = Client_billing::getChargesPerClient($data['reqid']);
+		$data['test_data'] = Q_request_details::getChargesPerClientInvoice($invoice_id);
 
 		//Get originator method
 		$data['method'] = $this -> router -> fetch_method();
 
 		//Get Total
-		$data['total'] = Client_billing::getTotal($data['reqid']);
+		$data['total'] = Q_request_details::getTotalInvoice($invoice_id);
 		$total_cost = $data['total'][0]['sum'];	
 
 		//Get Discount Data
@@ -143,9 +154,21 @@ class Coa extends MY_Controller {
 			$data['discount_cols'] = 5;
 			$data['discount_csp'] = 1;
 		}
-					
+
+        //Get details of the director
+        $data['director'] = User::getDirectorDetails();
+		
         $data['labref'] = $labref;
-        $this->load->view('coa_engine/invoice_auto', $data);
+        $html = $this->load->view('coa_engine/invoice_auto', $data, TRUE);
+
+        //Pdf url info
+        $saveTo = './invoices';
+        $invoice_name = "Invoice_" .$data['labref'] . ".pdf";
+
+
+        $dompdf->load_html($html);
+        $dompdf->render();
+        write_file($saveTo . "/" . $invoice_name, $dompdf->output());
 
     }
     
