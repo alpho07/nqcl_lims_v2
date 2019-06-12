@@ -93,13 +93,17 @@
         <div id="content">
             <form id="INVOICE">
             <center>
-                <?php $this -> load -> view("document_header_v", TRUE);?>
+                <table>
+                    <tr>
+                        <td style="text-align:center"><img src="./images/header/nqcl_banner.png"></td>
+                    </tr>
+                </table>
                 <table id="inv_date" >
                 <tr><td><div id="title">INVOICE</div></td></tr>
                 <tr><td colspan="3"><hr></tr>
                     <tr>
                         <td><span style="font-size:18px; font-weight: bold;">INVOICE No:</span><?php echo @$inv[0]->invno. $year2; ?></td>
-                        <td style="font-weight: bolder; white-space: nowrap;"><span><?php echo date('j') . '<sup>' . date('S') . '</sup>' . date(' F Y'); ?></span></td>
+                        <td style="text-align:right;font-weight: bolder; white-space: nowrap;"><span><?php echo date('j') . '<sup>' . date('S') . '</sup>' . date(' F Y'); ?></span></td>
 
                     </tr>
                     <tr><td colspan="3"></td></tr>
@@ -208,10 +212,10 @@
                 <table id="invoice_footer">
                     <tr>
                         <td style="font-weight: bolder; width: 100px;">DIRECTOR:</td>
-                        <td><span><?php echo $director[0]['title'].$director[0]['fname']." ".$director[0]['lname'] ?></span></td>
-                        <td style="border-bottom:dotted black;  width: 170px; padding-right: 20px;"></td>
+                        <td style="white-space: nowrap;"><span><?php echo $director[0]['title'].$director[0]['fname']." ".$director[0]['lname'] ?></span></td>
+                        <td style="width: 200px;text-align: center;">____________________________</td>
                         <td colspan="3">&nbsp;&nbsp;</td>                     
-                        <td style="text-align: right" ><span style="font-weight: bolder;" >DATE:&nbsp;</span><?php echo date('d/m/Y'); ?></td>
+                        <td style="text-align: right; white-space: nowrap;" ><span style="font-weight: bolder;" >DATE:&nbsp;</span><?php echo date('d/m/Y'); ?></td>
                     </tr>
                     <tr style="height: 20px;">
                         <td colspan="4" style="text-align: center">

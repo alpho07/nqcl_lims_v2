@@ -58,6 +58,55 @@ class Request_Management extends MY_Controller {
         echo json_encode($keywords);
     }*/
 
+    //Update quotation to proforma
+    public function updateQuotationToProforma($reqid, $quotation_no, $quotation_id, $quotations_id){
+
+        //Invoice specific references
+        $inv_quotation_no ='INV-'.$reqid;
+        $inv_quotations_id ='INV-'.$reqid.'-1';
+
+        //Update Request
+        $this->db->where('request_id', $reqid);
+        $this->db->update('request', array('quotation_status' => 1, 'proforma_no'=> $quotations_id));
+
+        //Update Quotations Final
+        $this->db->where('quotation_no', $quotation_no);
+        $this->db->update('quotations_final', array('quotation_no' => $inv_quotation_no, 'source_status'=> 'system', 'billing_status'=>'proforma'));
+
+        //Update Quotations
+        $this->db->where('quotations_id', $quotations_id);
+        $this->db->update('quotations', array('quotations_id' => $inv_quotations_id, 'quotation_no'=> $inv_quotation_no, 'ndq_ref'=>$reqid));        
+
+        //Update Request Details
+        $this->db->where('quotations_id', $quotations_id);
+        $this->db->update('q_request_details', array('quotations_id' => $inv_quotations_id));
+        
+        //Update Quotations Components
+        $this->db->where('quotations_id', $quotations_id);
+        $this->db->update('quotations_components', array('quotations_id' => $inv_quotations_id));
+
+        //Update Quotations Notes
+        $this->db->where('quotations_id', $quotations_id);
+        $this->db->update('quotations_notes', array('quotation_no' => $inv_quotation_no));
+
+
+        //Update Quotation-Proforma Transaction Table
+        $qinv = new quotationToInvoice();
+        $qinv->request_id = $reqid;
+        $qinv->quotation_no = $quotation_no;
+        $qinv->inv_quotation_no = $inv_quotation_no;
+        $qinv->inv_quotations_id = $inv_quotations_id;
+        $qinv->quotations_id = $quotations_id;
+        $qinv->save();
+
+    }
+
+
+
+
+
+
+
     //Get products in this quotation
     public function getProductsForThisQuotation($quotation_no){
         $quotation_no = $this->uri->segment(3);

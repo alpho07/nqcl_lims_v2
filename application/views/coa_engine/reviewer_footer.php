@@ -782,7 +782,7 @@
 
                 $('.result_table tbody').empty();
                 $.each(resp, function (di, data) {
-
+                    alert(data.determined)
                     $determined = data.determined;
                     $det = $determined.split(":");
                     $method = data.method;

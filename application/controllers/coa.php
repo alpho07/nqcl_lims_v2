@@ -100,7 +100,7 @@ class Coa extends MY_Controller {
      }
 	
 	  function generateCoa_invoice2($labref) {
-       //require_once("application/helpers/dompdf/dompdf_config.inc.php");
+       //require("application/helpers/dompdf/dompdf_config.inc.php");
         $this->load->helper('file');
 
         //DOMpdf configuration
@@ -1001,7 +1001,7 @@ ORDER BY name ASC")->result();
 
     function getRequestedTestsDisplayAJAX($labref) {
         $query = $this->db->query("SELECT rd.index_id, rd.test_id,t.name, c.* FROM coa_body c JOIN request_details rd ON c.labref = rd.request_id JOIN tests t ON c.test_id = t.id AND rd.test_id = c.test_id WHERE c.labref='$labref' ORDER BY rd.index_id ");
-        $result = $query->result();
+        $result = $query->result_array();
         echo json_encode($result);
 
 
