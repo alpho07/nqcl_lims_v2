@@ -575,7 +575,7 @@ $('.print_invoice').on("click", function(){
 		}
 		else if (submit_id == 'print_final'){
 			save_url = '<?php echo base_url()."coa/generatecoa_invoice2/$request_id/$rid/$info_doc"; ?>',
-			href = '<?php echo base_url()."invoices/" ?>'+ "Invoice_" + '<?php echo $rid; ?>'+ ".pdf";
+			href = '<?php echo base_url()."invoices/" ?>'+"Invoice_"+'<?php echo $request_id; ?>'+".pdf";
 		}
 	}
 	else if(table == "invoice"){

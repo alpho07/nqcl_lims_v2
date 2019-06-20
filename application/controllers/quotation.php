@@ -1086,7 +1086,7 @@ class Quotation extends MY_Controller {
 		$quotations_id = $quotation_id.'-1';
 
 		//get redirect ids
-		$redirect_url = base_url().'client_billing_management/showBillPerTest/'.$quotations_id.'/quotations/tests/q_request_details/q_entry/invoice/'.$quotation_no;
+		$redirect_url = base_url().'client_billing_management/showBillPerTest/'.$quotations_id.'/quotations/tests/q_request_details/q_entry/quotation/'.$quotation_no;
 
 		
 
@@ -1148,6 +1148,8 @@ class Quotation extends MY_Controller {
 			//Get tests
 			$tests = Request_details::getTests($ndqno);
 			$request_details = Request::getQuotationData($ndqno);
+
+			var_dump($tests);
 			
 			//Get currency from db, if NULL default to KES
 			if($request_details[0]['Dispatch_register']['currency'] != NULL ){
