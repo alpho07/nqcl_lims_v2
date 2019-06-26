@@ -21,8 +21,12 @@ class QuotationTr extends React.Component{
 
 	//get suggestions
 	getQuotationNumbers(term){
-		Axios.get('').
-		then().catch()
+		axios.get('quotationNo_suggestions/'+term).
+		then(function(response){
+			console.log(response.data);
+		}).catch(function(error){
+			console.log(error);
+		})
 	}
 
 	//Render function
