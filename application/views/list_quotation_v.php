@@ -1,13 +1,15 @@
-<table id = "list_quotation">
-	<thead>
-		<tr>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-		</tr>
-	</tbody>
-</table>
+<div class="container is-fullhd">
+	<table id = "list_quotation">
+		<thead>
+			<tr>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+			</tr>
+		</tbody>
+	</table>
+</div>
 
 <script type="text/javascript">
 
@@ -39,7 +41,7 @@
 			"aoColumns": [
 			{"sTitle":"+","mData":"Quotation_no",
 				"mRender": function ( data, type, row ) {
-					return '<a>+</a>';
+					return '<a><i class="fas fa-plus-circle fa-lg"></i></a>';
 				},
 				"className":"details"
 			},
@@ -131,10 +133,10 @@
 			{"sTitle":"Actions","mData":"Quotation_no",
 				"mRender": function ( data, type, row ) {
 					if(row.Quotations_final[0].quotation_entries < 2){
-						return '<a class = "add_entry" data-id= '+data+'>Add Product</a>' + ' | ' + '<a class = "print"  data-id= '+data+'>Pdf</a>';
+						return '<div class = "field is-grouped"><p class ="control"><a class = "add_entry button is-info is-small" data-id= '+data+'>Add Product</a></p>' + '<p class = "field is-grouped"><a class = "print button is-info is-small"  data-id= '+data+'>Print Pdf</a></p></div>';
 					}
 					else{
-						return '<a class = "add_entry" data-id= '+data+'>Add Product</a>' + ' | ' + '<a class = "print"  data-id= '+data+'>Print</a>';
+						return '<a class = "add_entry button is-info is-small" data-id= '+data+'>Add Product</a>' + ' &nbsp; ' + '<a class = "print button is-info is-small"  data-id= '+data+'>Print</a>';
 					}
 				},
 			},
@@ -276,7 +278,7 @@
 		if ( row.child.isShown() ) {
             row.child.hide();
             tr.removeClass('shown');
-			$(this).text('+');
+			$(this).html('<i class="fas fa-plus-circle fa-lg"></i>');
         }
         else {
 			
@@ -294,7 +296,7 @@
             });
 
             tr.addClass('shown');
-			$(this).text('-');
+			$(this).html('<i class="fas fa-minus-circle fa-lg"></i>');
         }
 		
 	})

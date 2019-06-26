@@ -21,6 +21,11 @@
 				dom:'lfrtip',
 				"order":[[0,'desc']],
 				"aoColumns": [
+				{"sTitle":"+","mData":"Test_methods[].id",
+					"mRender": function(data, type, full){
+						return '<a title = "Show Method(s)" class= "editMethod"><i class="fas fa-plus-circle"></i></a>'
+					},
+				},
 				{"sTitle":"Component","mData":"component"},
 				{"sTitle":"Method","mData":"Test_methods[].name"},
 				{"sTitle":"Cost","mData":"Test_methods[].charge_<?php echo strtolower($currency);?>",
@@ -30,7 +35,7 @@
 				},
 				{"sTitle":"Actions","mData":"Test_methods[].id",
 					"mRender": function(data, type, full){
-						return '<a class="editMethod">Edit</a>&nbsp;|&nbsp;<a class= "removeComponent">Remove</a>'
+						return '<a title = "Remove Component" class= "removeComponent is-danger is-small"><span style="color:red"><i class="fas fa-trash-alt red"></i></span>&nbsp;</a>'
 					},
 				}
 				],
@@ -66,7 +71,7 @@
 				if ( row.child.isShown() ) {
 		            row.child.hide();
 		            tr.removeClass('shown');
-					$(this).text('Edit');
+					$(this).html('<i class="fas fa-plus-circle"></i>');
 
 					childTable.ajax.reload();
 		        }
@@ -85,7 +90,7 @@
 		                }
 		            });
 		            tr.addClass('shown');
-					$(this).text('X');
+					$(this).html('<i class="fas fa-minus-circle"></i>');
 		        }
 	        })
 

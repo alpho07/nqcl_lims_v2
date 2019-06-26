@@ -131,18 +131,27 @@ $quotation_status = $approvalStatus;
 			
 
 			</ul>
+			<div>&nbsp;</div>
+			<div class="field is-grouped">
 			<?php if($approvalStatus <2) { ?>
-				<span>
-						<input id="<?php echo $info_doc ?>_approve" type = "button" data-submitId = "<?php echo $info_doc."_".$info_doc_suffix ?>" class = "submit-button leftie print_invoice" value = "<?php echo ucfirst($info_doc_suffix)." ".ucfirst($info_doc); ?>" data-table = "<?php echo $table; ?>">
-				</span>
-				<span>
-						<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "submit-button-alt leftie print_invoice" value = "Show <?php echo ucfirst($info_doc) ?>(s)" data-table = "<?php echo $table; ?>">
-				</span>
+				<p class="control">
+					
+							<input id="<?php echo $info_doc ?>_approve" type = "button" data-submitId = "<?php echo $info_doc."_".$info_doc_suffix ?>" class = "button is-primary  is-success print_invoice" value = "<?php echo ucfirst($info_doc_suffix)." ".ucfirst($info_doc); ?>" data-table = "<?php echo $table; ?>">
+					
+				</p>
+				<p class="control">
+					
+							<input id="invoice" type = "button" data-submitId = "view_all_invoice" class = "button is-primary is-info print_invoice" value = "Show <?php echo ucfirst($info_doc) ?>(s)" data-table = "<?php echo $table; ?>">
+					
+				</p>
 			<?php } else if($approvalStatus >= 2 && $finalStage == true){?>
-				<span>
-						<input id="print_final" type = "button" data-submitId = "print_final" class = "submit-button leftie print_invoice" value = "Print to PDF" data-table = "<?php echo $table; ?>">
-				</span>
+				<p class="control">
+					
+							<input id="print_final" type = "button" data-submitId = "print_final" class = "button is-primary is-primary print_invoice" value = "Print to PDF" data-table = "<?php echo $table; ?>">
+					
+				</p>
 			<?php } ?>
+			</div>
 	</form>
 </div>
 </div>
@@ -221,6 +230,12 @@ $(document).ready(function(){
 	 		}
 	 	],
 		"aoColumns": [
+			{"sTitle":"+","mData":"tests[].id",
+				"mRender":function(data, type, row){
+					return '<a><i title = "Show Method(s)" class="fas fa-plus-circle fa-lg"></i></a>';
+				},
+				"className":"rowDetails"
+			},
 			{"sTitle":"Test","mData":"tests[].Name",
 				"className":"testName"
 			},
@@ -260,19 +275,13 @@ $(document).ready(function(){
 						return '<a data-id = '+row.tests[0].id+' data-compendia = '+row.compendia_id+' data-compendiaName ='+row.compendia[0].abbrev+' data-name = '+row.tests[0].Name+' class = "editCompendia">'+data+'</a>';
 					}
 					else{
-						return '<a data-id = '+row.tests[0].id+' data-compendia = '+row.compendia_id+' data-name = '+row.tests[0].Name+' class = "editCompendia">Add</a>';
+						return '<a  title="Click to change compendia"  data-id = '+row.tests[0].id+' data-compendia = '+row.compendia_id+' data-name = '+row.tests[0].Name+' class = "editCompendia"><span><i class="fas fa-plus-square"></i></span>&nbsp;Add</a>';
 					}
 				}
 			},
-			{"sTitle":"Edit","mData":"tests[].id",
-				"mRender":function(data, type, row){
-					return '<a>Edit</a>';
-				},
-				"className":"rowDetails"
-			},
 			{"sTitle":"Remove","mData":"tests[].id",
 				"mRender":function(data, type, row){
-					return '<a data-id = '+data+' data-name = '+row.tests[0].Name+' class = "removeTest">Remove</a>'; 
+					return '<a data-id = '+data+' data-name = '+row.tests[0].Name+' class = "removeTest"><span style="color:red"><i class="fas fa-trash-alt red"></i></span></a>'; 
 				},
 				"className":"actions",
 				"orderAble": null
@@ -427,7 +436,7 @@ $(document).ready(function(){
 		if (row.child.isShown() ) {
             row.child.hide();
             tr.removeClass('shown');
-			$(this).text('Edit');
+			$(this).html('<i class="fas fa-plus-circle fa-lg"></i>');
 
 			ttable.ajax.reload()
         }
@@ -446,7 +455,7 @@ $(document).ready(function(){
                 }
             });
             tr.addClass('shown');
-			$(this).text('-');
+			$(this).html('<i class="fas fa-minus-circle fa-lg"></i>');
         }
 		
 	})

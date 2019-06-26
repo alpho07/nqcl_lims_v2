@@ -8,7 +8,11 @@
                 <!--Updated JS and CSS via Yarn Begin-->
 
                 <!--Site-wide General CSS-->
-                <link href="<?php echo base_url() . 'CSS/style.css' ?>" type="text/css" rel="stylesheet"/> 
+                <link href="<?php echo base_url() . 'CSS/style_next.css' ?>" type="text/css" rel="stylesheet"/> 
+
+                <!--Font Awesome -->
+                <script src="<?php echo base_url() .'CSS/fontawesome-free-5.9.0-web/js/all.js' ?>" type="text/javascript"></script>
+                <link href="<?php echo base_url() .'CSS/fontawesome-free-5.9.0-web/css/all.css' ?>" type="text/css" rel="stylesheet"/> 
 
                 <!--Bulma CSS-->
                 <link rel="stylesheet" type="text/css" href="<?php echo base_url().'node_modules/bulma/css/bulma.css';?>">
@@ -29,6 +33,13 @@
                 <link rel="stylesheet" type="text/css" href="<?php echo base_url().'node_modules/datatables/media/css/jquery.dataTables.css';?>">
                 <link rel="stylesheet" type="text/css" href="<?php echo base_url().'node_modules/datatables-buttons/css/buttons.jqueryui.css';?>">
 
+
+                <script src="<?php echo base_url() . 'javascripts/DataTables-1.9.3/extras/Responsive/js/dataTables.responsive.js' ?>" type="text/javascript"></script>
+                <script src="<?php echo base_url() . 'javascripts/DataTables-1.9.3/extras/Responsive/js/responsive.dataTables.js' ?>" type="text/javascript"></script>
+                <script src="<?php echo base_url() . 'javascripts/DataTables-1.9.3/extras/Responsive/js/responsive.jqueryui.js' ?>" type="text/javascript"></script>
+                <link rel="stylesheet" type="text/css" href="<?php echo base_url().'javascripts/DataTables-1.9.3/extras/Responsive/css/responsive.dataTables.css';?>">
+                <link rel="stylesheet" type="text/css" href="<?php echo base_url().'javascripts/DataTables-1.9.3/extras/Responsive/css/responsive.jqueryui.css';?>">
+                <link rel="stylesheet" type="text/css" href="<?php echo base_url().'node_modules/datatables/media/css/jquery.dataTables.css';?>">
                 
                 <!--Fancybox-->
                 <script src="<?php echo base_url() . 'node_modules/fancybox/dist/js/jquery.fancybox.js' ?>" type="text/javascript"></script>

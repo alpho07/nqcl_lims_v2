@@ -1,27 +1,37 @@
-<form class="methods" id="editMethods<?php echo $component_id.$test_id ?>">
-	<ul style="list-style: none;">
-		<li>
-			<fieldset>
-				<legend>Edit Method | <?php echo $quotations_id; ?> | <?php echo $test_name[0]['Name']; ?> | <?php echo $component_name; ?></legend>
-				<li>
-					<label>
-						<span>
-							<select name="method">
-								<?php foreach($method_data as $method){ ?>
-									<option value="<?php echo $method['id'] ?>"  <?php if($method['id'] == $method_id){ echo "selected";} ?>  ><?php echo $method['name'] ?></option>
-								<?php }?>
-								<option value="42" >None</option>
-							</select>
-							&nbsp;
-							<input type="submit" class=" save_changes submmit_button leftie" value="Save Changes">
-						</span>
-					</label>
-				</li>
-			</fieldset>
-		</li>
-	</ul>
-</form>
+<div class = "container">
+	<form class="methods" id="editMethods<?php echo $component_id.$test_id ?>">
+		<ul style="list-style: none;">
+			<li>
+				<fieldset>
+					<nav class="panel">
 
+					<legend class="panel-heading">Edit Method | <?php echo $quotations_id; ?> | <?php echo $test_name[0]['Name']; ?> | <?php echo $component_name; ?></legend>
+					<div class = "panel-block">
+					<li>
+						<label>
+								<div class="control is-expanded">
+									<div class="select is-fullwidth">
+										<select name="method" class="select ">
+										<?php foreach($method_data as $method){ ?>
+											<option value="<?php echo $method['id'] ?>"  <?php if($method['id'] == $method_id){ echo "selected";} ?>  ><?php echo $method['name'] ?></option>
+										<?php }?>
+										<option value="42" >None</option>
+										</select>
+									</div>
+								</div>
+								&nbsp;
+								<div class = "control">
+									<input type="submit" class=" save_changes button is-small is-primary leftie" value="Save Changes">
+								</div>
+						</label>
+					</li>
+					</div>
+					</nav>
+				</fieldset>
+			</li>
+		</ul>
+	</form>
+</div>
 
 <div class ="hidden2" id ="confirmBatch" >
     <span>Apply changes to this batch only or to all batches?</span>
