@@ -40,23 +40,23 @@ class Request_Management extends MY_Controller {
 
 
 
-    /*function GetAutocompleteQuotationNo($options = array()) {
+    function GetAutocompleteQuotationNo($term) {
         $this->db->distinct();
         $this->db->select('quotation_no');
-        $this->db->like('quotation_no', $options['quotation_no'], 'after');
+        $this->db->like('quotation_no', $term, 'none');
         $query = $this->db->get('quotations');
         return $query->result();
     }
 
-    function quotationNo_suggestions() {
+    public function quotationNo_suggestions() {
 
-        $term = $this->input->post('quotation_no', TRUE);
-        $rows = $this->GetAutocompleteQuotationNo(array('quotation_no' => $term));
+        $term = $this->uri->segment(3);
+        $rows = $this->GetAutocompleteQuotationNo($term);
         $keywords = array();
         foreach ($rows as $row)
-            array_push($keywords, $row->active_ing);
+            array_push($keywords, $row->quotation_no);
         echo json_encode($keywords);
-    }*/
+    }
 
     //Update quotation to proforma
     public function updateQuotationToProforma($reqid, $quotation_no, $quotation_id, $quotations_id){

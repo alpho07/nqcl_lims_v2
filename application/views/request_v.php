@@ -218,7 +218,9 @@
 
         <tr id="quotation_details">
             <td>Quotation Number</td>
-            <td id="quotation_no"></td>s
+            <td id="quotation_no"></td>
+            <td class = "hidden2" >Product</td>
+            <td id="quotation_no"></td>
         </tr>
 
         <tr id = "dateformatitle">
@@ -602,13 +604,15 @@
 </form>
 <!--Load React Scripts here , assumed end of html body-->
 
+<!--Axios Source-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js" integrity="sha256-XmdRbTre/3RulhYk/cOBUMpYlaAp2Rpo/s556u0OIKk=" crossorigin="anonymous"></script>
+
 <!--React Source-->
 <script src="https://unpkg.com/react@16.8.6/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@16.8.6/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-autosuggest/dist/standalone/autosuggest.js"></script>
 
 <!--React Component Script-->
-
 <script src="<?php echo base_url() . 'javascripts/quotations_react_component.js' ?>" type="module" ></script>
 
 <!--End of React Scripts-->
