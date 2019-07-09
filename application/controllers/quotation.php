@@ -1110,7 +1110,10 @@ class Quotation extends MY_Controller {
 
 		public function addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total){
 
-			
+			//*TEMPORARY HACK*// If user is a client, lock editing from client window
+			$this -> db -> where(array('quotation_no'=>$quotation_no));
+			$this -> db -> update('quotations_final', array('quotation_status'=>1));
+
 			//Add draft stage to invoice tracking table
 			$inv_t = new Invoice_tracking();
 			$inv_t->invoice_no = $quotation_no;
@@ -1913,8 +1916,12 @@ class Quotation extends MY_Controller {
 		
 		//Update Notes at Quotation
 		$this->db->where('quotation_no', $reqid);
+		$this->db->update('quotations_final', array('quotation_status'=>2));
+
+		//Update Quotations Final
+		$this->db->where('quotation_no', $reqid);
 		$this->db->update('quotation_notes', array('system_note'=>$quotation_note));
-		
+
 		//Get Signatory Details	
 		$signatory_title = $this -> uri -> segment(5);
 		$signatory = $this -> uri -> segment(6);
@@ -2053,8 +2060,7 @@ class Quotation extends MY_Controller {
 				'signatory_name' => $signatory_n,
 				'print_status' => 1,
 				'date_printed' => date('Y-m-d'),
-				'source_status' => 2,
-            	'quotation_status' => 1
+            	'quotation_status' => 2
 				)
 			);
        }
@@ -2073,7 +2079,6 @@ class Quotation extends MY_Controller {
 		$q_f -> signatory_name = $signatory_n;
 		$q_f->  date_printed = date('Y-m-d');
 		$q_f->  print_status = 1;
-		$q_f->	source_status =2;
 		$q_f->	quotation_status=1;
 		$q_f -> save();
 		

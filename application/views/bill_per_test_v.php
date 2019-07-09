@@ -377,7 +377,12 @@ $(document).ready(function(){
 			},
 			{"sTitle":"By","mData":null,
 				"mRender":function(data,type,row){
-					return row.User.fname+" "+row.User.lname;
+					if(row.User){
+						return row.User.fname+" "+row.User.lname;
+					}
+					else{
+						return 'Client';
+					}
 				},
 				"className":"by"
 			},
