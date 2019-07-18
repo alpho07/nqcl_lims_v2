@@ -67,6 +67,26 @@ class Test_methods extends Doctrine_Record {
 		return $methodData;
 	}
 
+	public static function getFollowedByAssay(){
+		$query = Doctrine_Query::create() 
+		-> select("*") 
+		-> from("test_methods")
+		-> where("name = ?", 'followed by Assay - HPLC');
+		$methodData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $methodData;
+	}
+
+	public static function getNoneForAssay(){
+		$query = Doctrine_Query::create() 
+		-> select("*") 
+		-> from("test_methods")
+		-> where("name = ?", 'None');
+		$methodData = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $methodData;
+	}
+
+
+
 
 
 

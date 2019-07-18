@@ -956,8 +956,10 @@ class Quotation extends MY_Controller {
 		$quotation -> Currency = $currency;
 		$quotation -> save();
 
-		//Add default component to components table
-
+				//Add default component to components table
+				//Check for followed by status (Assay and Identification)
+   				$followedBy = $this->getFollowedBy($test);
+ 
 	
 				for($i=0;$i<count($test);$i++){
 					$request = new Q_request_details();
@@ -991,8 +993,29 @@ class Quotation extends MY_Controller {
 					$qc->quotations_id = $quotation_id.'-'.$b;
 					$qc->quotation_id = $quotation_id;
 					$qc->test_id = $test[$i];
-					$qc->method_id = $method_details[0]['id'];
-					$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+						if($test[$i] == '1'){					
+							if($followedBy){
+								$qc->method_id = $followedBy['followed_by_assay'][0]['id'];
+								$qc->method_charge = $followedBy['followed_by_assay'][0]['charge_'.$currency_small];
+							}
+							else{
+								$qc->method_id = $method_details[0]['id'];
+								$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+							}
+						}else if($test[$i] == '5'){
+							if($followedBy){
+								$qc->method_id = $followedBy['none_method'][0]['id'];
+								$qc->method_charge = 0;
+								}
+							else{
+								$qc->method_id = $method_details[0]['id'];
+								$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+								}
+							}
+						else{
+							$qc->method_id = $method_details[0]['id'];
+							$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+						}				
 					$qc->save();
 
 					//Update test total with default method charges
@@ -1173,6 +1196,9 @@ class Quotation extends MY_Controller {
 			//Get Quotation Number
 			$quotation_no = 'INV-'.$ndqno;	
 
+			//Get followed by methods
+			$followedBy = $this->getFollowedBy($tests);
+
 
 			//Add to quotations final
 			$q_f = new Quotations_final();
@@ -1216,6 +1242,9 @@ class Quotation extends MY_Controller {
 				//Loop through tests and save to quotations tests table
 				foreach ($tests as $key => $value) {
 
+						//Hold test id 
+						$test_id = $value['test_id']; 
+
 						//Save tests to quotation request details
 						$q_r = new Q_request_details();
 						$q_r -> test_id = $value['test_id'];
@@ -1225,8 +1254,17 @@ class Quotation extends MY_Controller {
 						$q_r -> quotations_id = $quotation_no.'-'.$b;
 						$q_r -> save();
 
-						//Get default method for components
+						//Get HPLC as default method
+					$hplcDefaultQuery = $this->db->query("SELECT * FROM `test_methods` WHERE `test_id` = $test_id AND name LIKE '%HPLC%'");
+					$hplcDefaultMethod = $hplcDefaultQuery->result_array();
+
+					//Check if test has HPLC method and make it default method picked else pick the first listed method
+					if($hplcDefaultMethod){
+						$method_details = $hplcDefaultMethod;
+					}
+					else{
 						$method_details = Test_methods::getMethodsDefault($value['test_id']);
+					}
 						//var_dump($method_details[0]['id']);
 
 						//Add to quotations components table
@@ -1234,7 +1272,15 @@ class Quotation extends MY_Controller {
 						$qc->component = $request_details[0]['product_name'];
 						$qc->quotations_id = $quotation_no.'-'.$b;
 						$qc->test_id = $value['test_id'];
-						$qc->method_id = $method_details[0]['id'];
+						if($followedBy){
+							if($value['test_id'] == '1'){
+								$qc->method_id = $followedBy['followed_by_assay'][0]['id'];
+							}else if($test[$i] == '5'){
+								$qc->method_id = $followedBy['none_method'][0]['id'];
+							}
+						} else{
+							$qc->method_id = $method_details[0]['id'];
+						}
 						$qc->method_charge = $method_details[0]['charge_'.$currency_small];
 						$qc->save();
 

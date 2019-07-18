@@ -27,7 +27,7 @@
                         <li>
                             <label>
                                 <span>Client Email</span>
-                                <input id = "client_email" name="client_email"  value = "<?php if($newstatus ==0) { echo $quotation_info[0]['email']; }?>" placeholder ="client@email.com" type="text" />
+                                <input id = "client_email" name="client_email" class ="validate[required]"  value = "<?php if($newstatus ==0) { echo $quotation_info[0]['email']; }?>" placeholder ="client@email.com" type="text" />
                             </label>
                         </li>
                     </fieldset>

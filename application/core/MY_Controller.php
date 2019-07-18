@@ -46,6 +46,33 @@ class MY_Controller extends CI_Controller {
 
     }
 
+    function getFollowedBy($tests_array){
+        
+        //TEMPHACK - Get followed by for Assay and Identification
+        if(in_array(1, $tests_array) && in_array(5,$tests_array)){
+            $followed_by_status = 1;
+            $followed_by_assay = Test_methods::getFollowedByAssay();
+            $none_method = Test_methods::getNoneForAssay();
+       
+
+            //Put in array
+            $followed_by = array(
+                'followed_by_status' => 1, 
+                'followed_by_assay'=> $followed_by_assay, 
+                'none_method'=> $none_method
+            );
+        
+        }
+        else{
+            $followed_by = array();
+        }
+
+        //Return
+        return $followed_by;
+    }
+
+
+
     //getJsonString
     function getJsonString($array){
 

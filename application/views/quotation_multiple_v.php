@@ -82,7 +82,11 @@
 				//loop through unique compendia
 					foreach($compendia as $co){
 						if(!empty($co['compendia'])){
-							array_push($cmpnd, $co['compendia'][0]['abbrev']); 
+							if($co['compendia'][0]['abbrev'] == 'MIHM'){
+								array_push($cmpnd, $co['compendia'][0]['name']);
+							}else{
+								array_push($cmpnd, $co['compendia'][0]['abbrev']);
+							}
 						}
 					}
 				
@@ -92,7 +96,7 @@
 				if(!empty($cmpnd)){
 					echo implode("&nbsp;/&nbsp;", $cmpnd);
 				}else{
-					echo "USPNF";
+					echo "USP";
 				}
 				
 
