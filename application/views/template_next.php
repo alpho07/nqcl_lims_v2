@@ -54,8 +54,18 @@
                 <!--Vue JS -->
                 <!--script src="<?php //echo base_url() . 'node_modules/vue/dist/vue.js' ?>" type="text/javascript"></script-->
 
+                <!--Axios Source-->
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js" integrity="sha256-XmdRbTre/3RulhYk/cOBUMpYlaAp2Rpo/s556u0OIKk=" crossorigin="anonymous"></script>
+
+                <!--React Source-->
+                <script src="https://unpkg.com/react@16.8.6/umd/react.production.min.js" crossorigin></script>
+                <script src="https://unpkg.com/react-dom@16.8.6/umd/react-dom.production.min.js" crossorigin></script>
+                <script src="https://unpkg.com/react-autosuggest/dist/standalone/autosuggest.js"></script>
+
+                <!--End of React Scripts-->
+
                 <!--Axios-->
-                <script src="<?php echo base_url() . 'node_modules/axios/dist/axios.js' ?>" type="text/javascript"></script>
+                <!--script src="<?php //echo base_url() . 'node_modules/axios/dist/axios.js' ?>" type="text/javascript"></script-->
 
                 <!--Noty-->
                 <script src="<?php echo base_url() . 'node_modules/noty/lib/noty.js' ?>" type="text/javascript"></script>

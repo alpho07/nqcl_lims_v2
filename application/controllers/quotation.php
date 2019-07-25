@@ -196,7 +196,7 @@ class Quotation extends MY_Controller {
 
 		//Set view
 		$data['content_view'] = "quotation_extras";
-        $this->load->view('template1', $data);
+        $this->load->view('template_next', $data);
 	}
 	
 

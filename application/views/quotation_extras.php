@@ -53,7 +53,12 @@
 						</fieldset>
 					</li>
 					<li>
-						<fieldset>
+						<fieldset id = "quotation_notes">
+						
+						<!--Experimental react component-->
+						<FullNote />	
+
+
 							<legend>Notes</legend>	
 							<?php if(!empty($quotation_notes))
 								{ foreach($quotation_notes as $qn) { ?>
@@ -67,22 +72,6 @@
 							<?php } ?>
 						</fieldset>
 					</li>
-					<li>
-						<fieldset>
-							<legend>Signatory Selection</legend>
-							<li>
-								<label>
-									<span>Signatory</span>
-									<select id = "signatory_name" name = "signatory_name">
-										<?php foreach($signatories as $s) { ?>
-											<option value = "<?php echo $s["fname"].' '.$s["lname"]; ?>" data-title = "<?php echo $s["Users_types"][0]["User_type"][0]["name"]; ?>" ><?php echo $s["fname"].' '.$s["lname"]; ?></option>
-										<?php } ?>	
-									</select>
-								</label>
-							</li>
-						</fieldset>
-					</li>
-					<?php //}?>
 					<li>
 						<fieldset>
 							<legend>Finish</legend>
@@ -173,3 +162,6 @@
 	})
 
 </script>
+
+<!--React Component Script-->
+<script src="<?php echo base_url() . 'javascripts/quotationsReactScripts.js' ?>" type="module" ></script>
