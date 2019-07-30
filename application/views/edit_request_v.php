@@ -709,6 +709,7 @@ else{
                 var el = $(this);
                 if(el.val() == ""){
                     valid = false;
+                    console.log(valid)
                 }
             })
 
