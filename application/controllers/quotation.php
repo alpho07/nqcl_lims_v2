@@ -35,12 +35,21 @@ class Quotation extends MY_Controller {
 
 	public function updateCompendia(){
 
+		//Get approving user details
+		$user_id = $this->session->userdata('user_id'); 
+		$user_type_id = $this->session->userdata('usertype_id');
+
 		//Status for if update all tests or this one test
 		$batch_status = $this->input->post('batch_status');
 
 		//Get unique identifiers
 		$qid = $this -> uri -> segment(3);
 		$test_id = $this -> uri -> segment(4);
+		$old_compendia_id = $this -> uri -> segment(7);
+
+		//Check
+		var_dump($old_compendia_id);
+
 
 		//Get compendia
 		$compendia_id = $this -> input -> post('compendia');
@@ -51,13 +60,31 @@ class Quotation extends MY_Controller {
 		}else{
 			$where_array = array('quotations_id'=> $qid);
 		}
-		
+
+
 		//Update compendia
 		$this -> db -> where($where_array);
 		$this -> db -> update('q_request_details', array('compendia_id' => $compendia_id));
 
 
-		//Invoke Invoice Tracking
+		//Get previous compendia
+		$old_compendia_details = Compendia::getCompendiaName($old_compendia_id);
+		$new_compendia_details = Compendia::getCompendiaName($compendia_id);
+
+		var_dump($compendia_id);
+		var_dump($old_compendia_details);
+		var_dump($new_compendia_details);
+		
+		//Get update of compendia in text
+		$notes = "Changed compendium from ".$old_compendia_details[0]['name']." to ".$new_compendia_details[0]['name'];
+
+		//Add to Invoice Tracking
+		$insertIntoInvoiceTracking = "INSERT INTO invoice_tracking(invoice_no, quotation_no, stage, notes, user_id, user_type_id, discount, amount, batch_total,payable_amount) SELECT invoice_no, quotation_no, stage, '$notes', $user_id, $user_type_id, discount, amount, batch_total,payable_amount FROM invoice_tracking WHERE quotation_no IN ('$qid')";
+
+		//Run query
+		$this->db->query($insertIntoInvoiceTracking);
+
+
 
 	}
 
@@ -382,7 +409,7 @@ class Quotation extends MY_Controller {
 		$notes = "Edited ".$component_name." ".$old_method_details[0]["Tests"]['Name']." method from ".$old_method_details[0]['name']." to ".$method_details[0]['name'];
 
 		//Add invoice tracking
-		$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+		$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotations_id);
 
 
  	}
@@ -968,6 +995,8 @@ class Quotation extends MY_Controller {
 					$request -> client_email = $email;
 					$request -> quotation_id = $quotation_id;
 					$request -> quotations_id = $quotation_id.'-'.$b;
+					//Compendia id default is set to 1 (USP) in db
+					//$request -> compendia_id = 1;
 					$request -> save();
 					//var_dump($test_charges[0]['Charge']);
 				
@@ -1071,19 +1100,19 @@ class Quotation extends MY_Controller {
 
 
 
+			
+			//Set notes
+			$notes = "Initial quotation generated.";
+
+			//Add Invoice Tracking
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotation_id.'-'.$b);
+
+			
 			}
 
 			//Get new total
 			$main_total = Q_request_details::getTotal($quotation_id);
 			$total = $main_total[0]['sum'];
-
-			//Set notes
-			$notes = "Initial quotation generated.";
-
-			//Add Invoice Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
-
-
 
 
 		if($this->checkIfThisQuotationAlreadyPrinted($quotation_no) == false){
@@ -1131,7 +1160,7 @@ class Quotation extends MY_Controller {
 		}
 
 
-		public function addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total){
+		public function addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotations_id){
 
 			//*TEMPORARY HACK*// If user is a client, lock editing from client window
 			$this -> db -> where(array('quotation_no'=>$quotation_no));
@@ -1140,6 +1169,7 @@ class Quotation extends MY_Controller {
 			//Add draft stage to invoice tracking table
 			$inv_t = new Invoice_tracking();
 			$inv_t->invoice_no = $quotation_no;
+			$inv_t->quotation_no = $quotations_id;
 			$inv_t->notes = $notes;
 			$inv_t->user_id = $user_id;
 			$inv_t->user_type_id = $user_type_id;
@@ -1337,7 +1367,7 @@ class Quotation extends MY_Controller {
 			$notes = "Reverse engineered invoice from existing analysis request.";
 
 			//Add Invoice Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotation_no);
 
 		}
 
@@ -1373,7 +1403,7 @@ class Quotation extends MY_Controller {
 			$this -> db -> update('quotations_final', $qf_update_array);
 		
 			//Add Invoice Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotations_id);
 
 		}
 
@@ -1691,11 +1721,11 @@ class Quotation extends MY_Controller {
 			$notes = "Approved ". ucfirst($source);
 
 			//Add Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $invoice_id);
 		}
 
 
-		public function getInvoiceTracking(){
+		public function getInvoiceTrackingAll(){
 
 			//Get approving user details
 			$user_id = $this->session->userdata('user_id'); 
@@ -1707,6 +1737,30 @@ class Quotation extends MY_Controller {
 
 			//Get invoice tracking data
 			$inv_track_data = Invoice_tracking::getTrackingByInvoice($inv_id);
+
+			if (!empty($inv_track_data)) {
+	            foreach ($inv_track_data as $i) {
+	                $data[] = $i;
+	            }
+            echo json_encode($data);
+	        } else {
+	            echo "[]";
+	        }
+		}
+		
+		
+		public function getInvoiceTracking(){
+
+			//Get approving user details
+			$user_id = $this->session->userdata('user_id'); 
+			$user_type_id = $this->session->userdata('usertype_id'); 
+
+			//Get invoice no
+			$inv_id = $this->uri->segment(4);
+			//$invoice_id = substr($inv_id, 0, -2); 
+
+			//Get invoice tracking data
+			$inv_track_data = Invoice_tracking::getTrackingByQuotation($inv_id);
 
 			if (!empty($inv_track_data)) {
 	            foreach ($inv_track_data as $i) {

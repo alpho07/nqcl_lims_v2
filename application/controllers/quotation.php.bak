@@ -12,6 +12,455 @@ class Quotation extends MY_Controller {
 
 	}
 
+
+	public function updateTestBilling(){
+
+		//Get id
+		$data['reqid'] = $reqid = $this -> uri -> segment(3);
+		
+
+
+	}
+
+	public function updateTest(){
+		$test_name = $this -> input -> post('test');
+
+		//Check if sample is multicomponent
+		$this -> checkIfSampleIsMulticomponent($qid);
+
+		//Check if test is multicomponent
+		$this -> checkIfTestIsMulticomponent($qid);
+
+	}
+
+	public function updateCompendia(){
+
+		//Status for if update all tests or this one test
+		$batch_status = $this->input->post('batch_status');
+
+		//Get unique identifiers
+		$qid = $this -> uri -> segment(3);
+		$test_id = $this -> uri -> segment(4);
+
+		//Get compendia
+		$compendia_id = $this -> input -> post('compendia');
+
+		//Check batch status
+		if($batch_status == 0){
+			$where_array = array('quotations_id'=> $qid, 'test_id'=>$test_id);
+		}else{
+			$where_array = array('quotations_id'=> $qid);
+		}
+		
+		//Update compendia
+		$this -> db -> where($where_array);
+		$this -> db -> update('q_request_details', array('compendia_id' => $compendia_id));
+
+
+		//Invoke Invoice Tracking
+
+	}
+
+	public function saveQuotation(){
+
+		//Get uri segments pass them onto data array variable
+		$data['reqid'] =  $reqid = $this -> uri -> segment(3);
+		$data['table'] =  $this -> uri -> segment(4);
+		$data['table2'] = $this -> uri -> segment(5);
+		$data['table3'] = $this -> uri -> segment(6);		
+	
+		//Get total from the billing table
+		$total = Q_request_details::getTotal($reqid);
+		
+		//Get parameters necessary to retrieve quotation totals
+		$qn = Quotations::getQuotationParameters($reqid);
+		$qno = $qn[0]['Quotation_no'];
+		$qid = $qn[0]['Quotation_id'];
+
+		//Get number of quotation entries so far
+		$current_entries = Quotations::getNoOfEntries($qno);
+		$new_entries = $current_entries[0]['no_of_entries'] + 1;
+
+
+		//Update individual quotation entry
+		$this -> db -> trans_start(); 
+		$this -> db -> where(array('quotation_id'=> $qid));
+		$this -> db -> update('quotations', array('amount' => $total[0]['sum']));
+		$this -> db -> trans_complete();
+
+
+		//Get Overall Total
+		$main_total = Quotations::getMainTotal($qno);	
+		//var_dump($main_total);
+
+		$quotation_extras = Quotations_final::getQuotationExtras($qno); 
+		$payable_amount = $main_total[0]['sum'] + $quotation_extras[0]['admin_fee'] + ($quotation_extras[0]['reporting_fee']/100*$main_total[0]['sum']) - ($quotation_extras[0]['discount']/100*$main_total[0]['sum']);
+
+		//Update main quotations table
+		$this -> db -> trans_start();
+		$this -> db -> where(array('quotation_no'=> $qno));
+		$this -> db -> update('quotations_final', array('amount' => $main_total[0]['sum'], 'payable_amount' => $payable_amount,'quotation_entries'=> $new_entries));
+		$this -> db -> trans_complete();	
+
+		//Profile
+		//$this->output->enable_profiler(true);	 
+	}
+
+
+	public function editTestView(){
+
+		$data['currency'] = $currency = $this -> uri -> segment(6);
+		$data['test_name'] = $this -> uri -> segment(5);
+		$data['test_id']  =  $test_id =  $this -> uri -> segment(4);
+		$data['quotations_id'] = $qid = $this -> uri -> segment(3);
+
+
+		//Get components and compendia
+		$data['components'] = Quotations_components::getComponentMethods($qid, $test_id, $currency);
+		$data['compendia'] = Compendia::getAll();
+
+
+		$data['content_view'] = "quotation_editTest_v";
+        $this->load->view('template_next', $data);
+	}
+
+	public function editCompendiaView(){
+
+		$data['current_compendium_name'] =  $this -> uri -> segment(8);
+		$data['current_compendium'] =  $this -> uri -> segment(7);
+		$data['currency'] = $currency = $this -> uri -> segment(6);
+		$data['test_name'] = $this -> uri -> segment(5);
+		$data['test_id']  =  $test_id =  $this -> uri -> segment(4);
+		$data['quotations_id'] = $qid = $this -> uri -> segment(3);
+
+
+		//Get components and compendia
+		$data['components'] = Quotations_components::getComponentMethods($qid, $test_id, $currency);
+		$data['compendia'] = Compendia::getAll();
+
+
+
+		$data['content_view'] = "quotation_editCompendia_v";
+        $this->load->view('template_next', $data);
+	}
+
+	public function quotationExtras (){
+
+		//Get uri segments pass them onto data array variable
+		$data['reqid'] = $data['rid'] = $rid = $this -> uri -> segment(3);
+		$data['table'] = $this -> uri -> segment(4);
+		$data['table2'] = $this -> uri -> segment(5);
+		$data['table3'] = $this -> uri -> segment(6);
+	
+		//Get data
+		$data['extras'] = Quotations_final::getQuotationExtras($rid);
+
+		//Get Signatory
+		$data['signatory'] = Quotations_final::getSignatory($rid);
+
+		//Get Extra Billing Columns
+		$sql = "SELECT COLUMN_NAME as 'column', COLUMN_COMMENT as 'comment' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'enqcl' AND TABLE_NAME = 'quotations' AND COLUMN_COMMENT <> '';";	
+		$query = $this->db->query($sql);
+		$data['extra_columns'] = $query->result_array();
+
+		$client = Quotations_final::getClient($rid);
+		$data['client_id'] = $client_id = $client[0]['client_id'];
+
+		//Get all client info
+		$data['client_info'] = $this->getAllClientInfo($client_id);
+
+		//Get Quotation No
+		$data['quotation_no'] = $rid;
+
+		//Get list of eligible signatories
+		$data['signatories'] = User::getSignatories();
+
+		//Get Currency
+		$data['currency'] = Quotations_final::getCurrency($rid);
+
+		//Get Multicomponent Status
+		//$data['sample_mstatus'] = Quotations_components::getMulticomponentStatus($rid);
+		$data['multi_tests'] = $this->getMulticTests();
+
+		//Get quotation summary
+		$data['quotation_summary']= Quotations::getQuotationSummary($rid);
+
+		//Get Total of this Quotation
+		$data['quotation_total'] = Quotations::getTotalPerClient($client_id, $rid);
+
+		//Get All Default Notes
+		$data['quotation_notes'] = Quotation_notes::getAllDefaultNotes();		
+
+		//Get All Special Notes
+		$data['special_notes'] = Quotation_notes::getAllSpecialNotes($rid);		
+
+		//Set view
+		$data['content_view'] = "quotation_extras";
+        $this->load->view('template_next', $data);
+	}
+	
+
+	public function invoiceExtras (){
+
+		//Get uri segments pass them onto data array variable
+		$data['reqid'] = $this -> uri -> segment(3);
+		$data['table'] = $this -> uri -> segment(4);
+		$data['table2'] = $this -> uri -> segment(5);
+		$data['table3'] = $this -> uri -> segment(6);
+	
+		//Set view
+		$data['content_view'] = "invoice_extras";
+	}
+
+	public function add_reference(){
+		$data['reqid'] = $reqid = $this->uri->segment(3);
+		$rid = Quotations::getQuotationNumber2($reqid);
+		$data['quotation_no'] = $rid[0]['Quotation_no'];
+		$data['quotation_summary']= Quotations::getQuotationSummary($rid[0]['Quotation_no']);
+		$data['currency'] = Quotations_final::getCurrency($rid[0]['Quotation_no']);
+		$data['content_view'] = "add_ndq_ref_v";
+		$this->load->view('template1', $data);
+ 	}
+
+ 	public function save_reference(){
+ 		$reqid = $this->uri->segment(3);
+ 		
+ 		//Get NDQ Reference
+ 		$ndq_ref = $this->uri->segment(4);
+
+ 		//Update NDQ Reference
+ 		$this -> db -> where('Quotations_id', $reqid);
+		$this -> db -> update('quotations', array('ndq_ref'=>$ndq_ref));
+ 	}
+
+ 	public function editMethodView(){
+
+ 		//Get Method ID, Test Id, Quotations Id 
+ 		$method_id = $data['method_id'] = $this->uri->segment(3);
+ 		$test_id = $data['test_id'] = $this->uri->segment(4);
+ 		$data['quotations_id'] = $this->uri->segment(5);
+ 		$data['component_id'] = $this->uri->segment(6);
+ 		$data['component_name'] = $this->uri->segment(7);
+
+ 		//Get Test Name
+ 		$data['test_name'] = Tests::getTestNameSimple($test_id);
+
+ 		//Get quotation details
+ 		$quotation_details = Quotations::getQuotationParameters($data['quotations_id']);
+		$data['no_of_batches'] = $quotation_details[0]['No_of_batches'];
+		$data['quotation_id'] = $quotation_details[0]['Quotation_id'];
+		$data['quotation_no'] = $quotation_details[0]['Quotation_no'];
+		$data['currency'] = $quotation_details[0]['Currency'];
+
+ 		//Get Method Data
+ 		$data['method_data'] = Test_methods::getMethodsHydrated($test_id);
+
+ 		//Pass data to view
+ 		$data['content_view'] = "editMethod_v";
+ 		$this->load->view('template_next', $data);
+ 	}
+
+ 	public function testsSearch(){
+
+ 		//Get term
+ 		$term = $this-> input -> post('term', TRUE);
+
+ 		//Send to search function
+ 		$this->testSuggestions($term);
+ 	}
+
+ 	public function getCurrentUser(){
+ 		return $this->session->all_userdata();
+ 	}
+
+ 	public function editMethod(){
+
+ 		//Get approving user details
+		$user_id = $this->session->userdata('user_id'); 
+		$user_type_id = $this->session->userdata('usertype_id');
+
+ 		//Get POST value
+ 		$method = $this -> input -> post('method');
+ 	
+ 		//Get update parameters
+ 		$method_id = $data['method_id'] = $this->uri->segment(3);
+ 		$test_id = $data['test_id'] = $this->uri->segment(4);
+ 		$data['quotations_id'] = $quotations_id = $this->uri->segment(5);
+ 		$data['component_id'] = $component_id = $this->uri->segment(6);
+ 		$data['batch_status'] = $batch_status = $this->uri->segment(11);
+ 		$currency = $this->uri->segment(12);
+ 		$data['quotation_no'] = $quotation_no = $this->uri->segment(10);
+ 		$data['quotation_id'] = $quotation_id = $this->uri->segment(8);
+
+ 		//Batch,Individual Evaluation
+ 		if($batch_status == 1){
+ 			$ref = 'quotation_id';
+ 			$qid = $quotation_id;
+ 		}
+ 		else{
+ 			$ref = 'quotations_id';
+ 			$qid = $quotations_id;
+ 		}
+
+ 		//Check what batch status is returned, returns correct batch status
+ 		//var_dump($batch_status);
+
+ 		//Get component name from db
+ 		$component_data = Quotations_components::getComponentData($component_id);
+ 		$data['component_name'] = $component_name = $component_data[0]['component'];
+
+ 		$this->db->trans_start();
+
+ 		//Get Old Method Details
+ 		$old_method_details = Test_methods::getMethodDetailsWithTests($method_id);
+ 		var_dump($old_method_details);
+
+
+ 		//Get Method Charge
+ 		$method_details = Test_methods::getMethodDetails($method);
+ 		$method_charge = $method_details[0]['charge_'.strtolower($currency)];
+
+ 		//Update Quotation Components
+ 		$qc_where_array = array($ref => $qid, 'test_id'=>$test_id, 'component'=>$component_name);
+ 		$qc_update_array = array('method_id'=>$method, 'method_charge'=> $method_charge);
+ 		$this -> db -> where($qc_where_array);
+		$this -> db -> update('quotations_components', $qc_update_array);
+		$this->output->enable_profiler(true);
+
+		$this->db->trans_complete();
+
+		$this->db->trans_start();	
+		//Get new component total
+		$tmc = Quotations_components::getComponentsTotalAlt($ref,$quotations_id,$test_id);
+		$total_methodCharge = $tmc[0]['component_total'];
+		//var_dump($total_methodCharge);
+
+		//Update Q Request Details with component total
+		$qr_where_array =  array($ref => $qid, 'test_id' => $test_id);
+		$qr_update_array =  array('method_charge' => $total_methodCharge);
+
+		$this -> db -> where($qr_where_array);
+		$this -> db -> update('q_request_details', $qr_update_array);
+
+		//$this -> output -> enable_profiler(true);
+
+		$this->db->trans_complete();
+
+
+		//Check db transactions
+		$this -> output -> enable_profiler(true);
+
+
+
+		//Get total for this batch only.
+		$b_total = Q_request_details::getBatchTotal($quotations_id);
+		$batch_total = $b_total[0]['sum'];
+		
+				//Update quotations final
+		$qb_where_array = array($ref => $qid);
+		$qb_update_array = array('amount'=>$batch_total);
+		$this -> db -> where($qb_where_array);
+		$this -> db -> update('quotations', $qb_update_array);
+
+
+		//Get new total
+		$main_total = Q_request_details::getTotal($quotation_id);
+		$total = $main_total[0]['sum'];
+		//var_dump($main_total);		
+
+		$quotation_extras = Quotations_final::getQuotationExtras($quotation_no); 
+		$payable_amount = $total + $quotation_extras[0]['admin_fee'] + ($quotation_extras[0]['reporting_fee']/100*$total) - ($quotation_extras[0]['discount']/100*$total);
+
+
+		//Update quotations final
+		$qf_where_array = array('quotation_no' => $quotation_no);
+		$qf_update_array = array('amount'=>$total, 'payable_amount'=>$payable_amount);
+		$this -> db -> where($qf_where_array);
+		$this -> db -> update('quotations_final', $qf_update_array);
+
+		//Set notes
+		$notes = "Edited ".$component_name." ".$old_method_details[0]["Tests"]['Name']." method from ".$old_method_details[0]['name']." to ".$method_details[0]['name'];
+
+		//Add invoice tracking
+		$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+
+
+ 	}
+
+	public function listall(){
+		$data['title'] = "List of all Quotations";
+		$data['content_view'] = "settings_v";
+        $data['banner_text'] = "NQCL Settings";
+        $data['link'] = "settings_management";
+		$data['settings_view'] = "list_quotation_v";
+        $this->load->view('template_next', $data);
+	}
+
+	public function invoices(){
+		$data['title'] = "List of all Invoices";
+		$data['content_view'] = "settings_v";
+        $data['banner_text'] = "NQCL Settings";
+        $data['link'] = "settings_management";
+		$data['settings_view'] = "list_invoices_v";
+        $this->load->view('template_next', $data);
+	}
+
+
+	public function getInvoices(){		
+		$quotations = Quotations::getInvoices();
+        if (!empty($quotations)) {
+            foreach ($quotations as $q) {
+                $data[] = $q;
+            }
+            echo json_encode($data);
+        } else {
+            echo "[]";
+        }
+	}
+
+	
+	public function getlist(){
+		$quotations = Quotations::getAllConsolidated();
+        if (!empty($quotations)) {
+            foreach ($quotations as $q) {
+                $data[] = $q;
+            }
+            echo json_encode($data);
+        } else {
+            echo "[]";
+        }
+	}
+	
+	public function getChildEntries(){
+		$quotation_no = $this->uri->segment(3);		
+		$quotations = Quotations::getChildEntries($quotation_no);
+        if (!empty($quotations)) {
+            foreach ($quotations as $q) {
+                $data[] = $q;
+            }
+            echo json_encode($data);
+        } else {
+            echo "[]";
+        }
+	}
+	
+	public function listAllChildren(){
+		$data['quotation_no'] = $this->uri->segment(3);
+		$c = Quotations_final::getCurrency($data['quotation_no']);	
+		$data['currency'] = $c[0]['currency'];
+		$data['content_view'] = "list_quotation_child_v";
+        $this->load->view('template_next', $data);
+	}
+
+	public function listAllComponentMethods(){
+		$data['quotation_id'] = $rid= $this->uri->segment(3);
+		$data['test_id']= $test_id = $this->uri->segment(4);
+		$data['table'] = $this->uri->segment(5);
+		$data['currency'] = $currency = $this->uri->segment(6);
+		$data['content_view'] = "list_componentMethods__v";
+        $this->load->view('template_next', $data);
+	}
+
 	public function updateSystem(){
 		//Get request_id
 		$reqid = $this -> uri -> segment(3);
@@ -44,11 +493,21 @@ class Quotation extends MY_Controller {
 				$ref = $id;
 			}
 
-		//Get post inputs
-		$assay_sys = $this -> input -> post('system_5');
-		$dissolution_sys = $this -> input -> post('system_2');
-		$no_of_stages = $this -> input -> post('no_of_stages');
-		$extra_charge = 3200;
+		//Generate post input variable names dynamically
+		$mcTests = Tests::getMcTests2();
+		$testsChecked = array();
+		$tests_table = ucfirst($billing_table);
+		$tests = $tests_table::getTests2($reqid);
+		foreach ($tests as $test) {
+			$testsChecked[] = $test['test_id'];	
+		}
+		
+		//var_dump($testsChecked);
+		
+		//Get currency
+		$c = Quotations::getCurrency($reqid);
+		$currency = $c[0]['Currency'];
+	
 		
 		//Capitalize components table variable, make as class
 		$components_table_class = ucfirst($components_table);
@@ -60,29 +519,60 @@ class Quotation extends MY_Controller {
 		$components = $components_table_class::$components_method($reqid, $ref);
 		$components_no = count($components);
 
-		//Get Test Ids
-		$assay = 5;
-		$dissolution = 2; 		
+		
+		//No. of Dissolution stages
+		$no_of_stages = $this -> input -> post('no_of_stages');
+		
+		
+		foreach ($mcTests as $mc){
+		if(in_array($mc["id"],$testsChecked)){
+			var_dump($mc["Name"]);
+		$post_name = $mc["Name"].'_sys';	
+		$base_charge_name = 'base_charge_'.$mc["Name"];
+		$testName = $mc["Name"];
+		$testId = $mc["id"];
+			
+		//Get post inputs
+		$post_name = $this -> input -> post('system_'.$testId);
+		//$dissolution_sys = $this -> input -> post('system_2');
+	
 
 		//Get Base Charge of Test
-		$base_charge_assay = $components_table_class::getBaseCharge($assay, $reqid);
-		$base_charge_dissolution = $components_table_class::getBaseCharge($dissolution, $reqid);
+		$base_charge_name = $components_table_class::getBaseCharge($testId, $reqid);
+
 		
 		//Update Assay
-		if($assay_sys != 0){
-		//Update Assay System
-		$cb_where_array = array($ref => $reqid, 'test_id' => 5);
-		$cb_update_array = array('charge_system' => $assay_sys);
+		if($post_name != 0){
+		
+		//Get Extra Charge for Assay
+		$xcharge = Additional_components_charges::getExtraCharge($post_name, $currency);
+		$extra_charge = $xcharge[0]['charge_'.strtolower($currency)];
 
+		if($post_name != 5){
+			
+			//Update Assay System
+			$cb_where_array = array($ref => $reqid, 'test_id' => $testId);
+			$cb_update_array = array('charge_system' => $post_name);
+		
+		}
+		
+		else {
+			
+			$cb_where_array = array($ref => $reqid, 'test_id' => $testId);
+			$cb_update_array = array('charge_system' => $post_name, 'stages' => $no_of_stages);
+		
+		}
+		//$extra_charge_assay 
+		
 		//Update quotation_components for Assay
 		$this -> db -> where($cb_where_array);
 		$this -> db -> update($billing_table, $cb_update_array);
 
-		if($assay_sys == 1){
-			$test_charge = $base_charge_assay['method_charge']  + ($extra_charge * ($components_no - 1));
+		if($post_name == 1){
+			$test_charge = $base_charge_name['method_charge']  + ($extra_charge * ($components_no - 1));
 		}
-		else if($assay_sys == 2){
-			$test_charge = $base_charge_assay['method_charge'] * $components_no;
+		else if($post_name == 2){
+			$test_charge = $base_charge_name['method_charge'] * $components_no;
 		}
 
 
@@ -92,9 +582,9 @@ class Quotation extends MY_Controller {
 		$this -> db -> where($cb_where_array);
 		$this -> db -> update($billing_table, $cb_update_array2);
 
-	 	$assay_id = $base_charge_assay['id'] + 1;
+	 	$testId2 = $base_charge_name['id'] + 1;
 
-		$rc_where_array = array('id' => $assay_id);
+		$rc_where_array = array('id' => $testId2);
 		$rc_update_array = array('method_charge' => $extra_charge);
 
 		$this -> db -> where($rc_where_array);
@@ -102,42 +592,9 @@ class Quotation extends MY_Controller {
 
 		//var_dump($base_charge_assay);
 
-		}
-
-		//Update Dissolution
-		if($dissolution_sys != 0){
-			$cb_where_array = array($ref => $reqid, 'test_id' => 2);
-			$cb_update_array = array('charge_system' => $dissolution_sys, 'stages' => $no_of_stages);
+		}}
 		
-			//Update quotation_components for Assay
-			$this -> db -> where($cb_where_array);
-			$this -> db -> update($billing_table, $cb_update_array);
-		
-			//Get test Charges for dissolution
-			if($dissolution_sys == 1){
-				$test_charge2 = $base_charge_dissolution['method_charge']  + ($extra_charge * ($components_no - 1));
-			}
-			else if($dissolution_sys == 2){
-				$test_charge2 = $base_charge_dissolution['method_charge'] * $components_no;
-			}
-
-			$cb_update_array2 = array('test_charge' => $test_charge2);
-
-			$this -> db -> where($cb_where_array);
-			$this -> db -> update($billing_table, $cb_update_array2);
-
-		 	$diss_id = $base_charge_assay['id'] + 1;
-
-			$rc_where_array = array('id' => $diss_id);
-			$rc_update_array = array('method_charge' => $extra_charge);
-
-			$this -> db -> where($rc_where_array);
-			$this -> db -> update($components_table, $rc_update_array);
-
 		}
-
-		//Add Assay and Dissolution
-		//$total = $test_charge + $test_charge2;
 
 		//Get existing amount from the register table
 		$amount = $billing_table::getTotal($reqid);
@@ -175,6 +632,24 @@ class Quotation extends MY_Controller {
 			$this -> db -> update('sample_issuance', $sample_issuance_update);
 
 		}
+		
+			
+			
+			/*
+			$entries = Quotations::getNoOfEntries($qn[0]['Quotation_no']);
+			$no_of_entries_done = $entries[0]['Quotation_entries_done'];
+			var_dump($no_of_entries_done);
+			*/
+			
+			//Get no. of entries
+			$qn = Quotations::getQuotationNumber2($reqid);
+			$completion_status = 1;
+			
+			//Update no. of entries done
+			$entries_update_array = array('Completion_status' => $completion_status);
+			$this -> db -> where('quotation_no', $qn[0]['Quotation_no']);
+			$this -> db -> update('Quotations', $entries_update_array);
+			
 
 	}
 
@@ -193,8 +668,9 @@ class Quotation extends MY_Controller {
 
 		//Capitalize class name
 		$tests_table = ucfirst($data['table3']);
-
-		$data['multi_tests'] = array('2' => 'Dissolution', '5' => 'Assay');
+		
+		$mc_tests = Tests::getMcTests2();
+		$data['multi_tests'] = $mc_tests;
 		$data['tests_checked'] = array();
 		$tests = $tests_table::getTests2($data['reqid']);
 		foreach ($tests as $test) {
@@ -213,7 +689,7 @@ class Quotation extends MY_Controller {
 		   	$data['table3']= $this -> uri -> segment(6);
 		    
 		   	//Get unique identifier
-		    $data['reqid'] = $this -> uri -> segment(3);
+		    $data['reqid'] = $this -> uri -> segment(3);  
 
 		    //Get client id
 		    $data['client_id'] = $this -> uri -> segment(7);
@@ -235,7 +711,9 @@ class Quotation extends MY_Controller {
 		   		else{
 		   			$data['proforma_no'] = 0;
 		   		}
-
+				
+				//Get proforma no.
+				
 		   		
 		   		//Get Client Agent
 		    	$c_a_i = Clients::getClientAgentId($data['client_id']);
@@ -244,11 +722,40 @@ class Quotation extends MY_Controller {
             	$data['proforma_nos'] = Request::getProformaInfo($data['client_id'], $date_received);
 
 		    }
+		    else{
+		    	
+		    	$quotation_details = Quotations::getQuotationParameters($data['reqid']);
+
+		    	$data['no_of_batches'] = $quotation_details[0]['No_of_batches'];
+
+		    	if(empty($data['client_id'])){
+		    		$data['client_id'] = $quotation_details[0]['Client_number']; 
+		    	}
+
+		    	//Set quotation id to a variable
+		    	$data['quotation_id'] = $quotation_details[0]['Quotation_id'];
+
+		    	//var_dump($quotation_details);
+		    }
 		    
 			//pass data to view
 			$data['content_view'] = 'quotation_state_components_v';
 			$this -> load -> view('template1', $data);
 	}
+	
+			public function getMulticTests(){
+			//Get tests that for multicomponent , can take different methods for each component
+			$mc_tests = Tests::getMcTests();
+			
+			//Simplify multidimensional array
+			$mct = array();
+			foreach($mc_tests as $mc){
+				array_push($mct, $mc['id']);
+			}
+			
+			//Return simplified array
+			return $mct;	
+		}
 
 
 	public function setComponents(){
@@ -300,12 +807,17 @@ class Quotation extends MY_Controller {
 			$this -> db -> where($proforma_update_where_array_cb);
 			$this -> db -> update('client_billing',$proforma_update_array_cb);
 
+			$no_of_batches = 0;
+
+		}
+		else{
+			$no_of_batches = $this->uri->segment(8);
 		}
 
 		//Get tests affected by multicomponent quality of sample
 		//Condition so that if single, not to enter multiple components
 		if($component_status == 1){
-			$multi_tests = array(2,5);
+			$multi_tests = $this->getMulticTests();
 		}
 		else if($component_status == 0){
 			$multi_tests = array(0);
@@ -315,22 +827,38 @@ class Quotation extends MY_Controller {
 		$components_table = ucfirst($table)."_components";
 		$id = $table."_id";
 
-		//Loop through array of components, saving each to own row in quotations_components table
-		for($j=0; $j < count($multi_tests); $j++){
-			for ($i=0; $i < count($components); $i++) {
-			  	$component = new $components_table();
-	            $component->component = $components[$i];
-	            $component->test_id = $multi_tests[$j];
-	            $component->$id = $reqid;
-	            $component->save();	
+		if($table == 'quotations'){
+			for($b=1; $b<=$no_of_batches;$b++){
+				//Loop through array of components, saving each to own row in quotations_components table
+				for($j=0; $j < count($multi_tests); $j++){
+					for ($i=0; $i < count($components); $i++) {
+					  	$component = new $components_table();
+			            $component->component = $components[$i];
+			            $component->test_id = $multi_tests[$j];
+			            $component->$id = substr($reqid,0,-2)."-".$b;
+			            $component->quotation_id = $reqid;
+			            $component->save();	
+					}
+				}
 			}
+		}
+		else{
+				for($j=0; $j < count($multi_tests); $j++){
+					for ($i=0; $i < count($components); $i++) {
+					  	$component = new $components_table();
+			            $component->component = $components[$i];
+			            $component->test_id = $multi_tests[$j];
+			            $component->$id = $reqid;
+			            $component->save();	
+					}
+				}
 		}
 	}
 
 	public function getProformaNo($p_no, $c, $d){
 
 			//Condition checks whether proforma_no has been selected in generate quotation view
-			if(!empty($p_no) || $p_no != 'New'){
+			if(!empty($p_no) && $p_no != 'New'){
 				$proforma_no = $p_no;
 			}
 			else if(empty($p_no) || $p_no == 'New'){
@@ -368,43 +896,48 @@ class Quotation extends MY_Controller {
 
 	public function save() {
 
-
-		if (is_null($_POST)) {
-            echo json_encode(array(
-            'status' => 'error',
-            'message'=> 'Data was not posted.'
-            ));
-            }
-        else
-            {
-            echo json_encode(array(
-                'status' => 'success',
-                'message'=> 'Data added successfully',
-                'array' => json_encode($_POST)
-            ));
-            }
 		
-		$email = $this -> input -> post("client_email");
-		$client_number = $this -> input -> post("client_id");
-		$test =$this -> input -> post("test");
+		$newstatus = $this->uri->segment(3);
+
+		//Get approving user details
+		$user_id = $this->session->userdata('user_id'); 
+		$user_type_id = $this->session->userdata('usertype_id');
+		
+		
+		//Variable inputs unique to each entry
 		$no_of_batches = $this -> input -> post("no_of_batches");
 		$sample_name = $this -> input -> post("sample_name");
+		$component_name = $this -> input -> post("component_name");
+		$test =$this -> input -> post("test");
+		
+		//If new quotation, variables global to the consolidated quotation
+		$currency = $this -> input -> post("currency");
+		$currency_small = strtolower($currency);
+
+		$email = $this -> input -> post("client_email");
+		$client_number = $this -> input -> post("client_id");
 		$client_name = $this -> input -> post("client_name");
 		//$active_ingredients = $this -> input -> post("active_ing");
 		$dosage_form = $this -> input -> post("dosage_form");
 		$quotation_date = $this -> input -> post("quotation_date");
 		$q_no = $this -> input -> post("quotation_no");
-		//$quoted_amount = $this -> input -> post("quoted_amount");
-
+		
 		//Get Quotation Id
 		$quotation_id = $this -> getQuotationId();
 
 		//Get client number
-		$client_number = $this -> getClientNumber($client_number);
+		$client_no = $this -> getClientNumber($client_number, $q_no);
 
 		//Get Quotation Number
 		
-		$quotation_no = $this -> getQuotationNo($client_number, $q_no);		
+		$quotation_no = $this -> getQuotationNo($client_no, $q_no);	
+		//var_dump($client_no);
+
+
+		//Save each batch individually
+		for($b=1;$b<=$no_of_batches;$b++){
+
+		
 
 		//Save Quotation
 		$quotation = new Quotations();
@@ -415,12 +948,800 @@ class Quotation extends MY_Controller {
 		$quotation -> Client_name = $client_name;
 		$quotation -> Quotation_date = date('y-m-d');
 		$quotation -> No_of_batches = $no_of_batches;
-		$quotation -> Client_number = $client_number;
-		$quotation -> Quotations_id = $quotation_id;
+		$quotation -> Client_number = $client_no;
+		$quotation -> Quotation_id = $quotation_id;
+		$quotation -> Quotations_id = $quotation_id.'-'.$b;
 		$quotation -> Quotation_no = $quotation_no;
+		$quotation -> Batch_id = $b;
+		$quotation -> Currency = $currency;
 		$quotation -> save();
+
+				//Add default component to components table
+				//Check for followed by status (Assay and Identification)
+   				$followedBy = $this->getFollowedBy($test);
+ 
+	
+				for($i=0;$i<count($test);$i++){
+					$request = new Q_request_details();
+					$request -> test_id = $test[$i];
+					$request -> client_number = $client_number;
+					$request -> client_email = $email;
+					$request -> quotation_id = $quotation_id;
+					$request -> quotations_id = $quotation_id.'-'.$b;
+					$request -> save();
+					//var_dump($test_charges[0]['Charge']);
+				
+					//Add default component to components table
+					
+					//Get HPLC as default method
+					$hplcDefaultQuery = $this->db->query("SELECT * FROM `test_methods` WHERE `test_id` = $test[$i] AND name LIKE '%HPLC%'");
+					$hplcDefaultMethod = $hplcDefaultQuery->result_array();
+
+					//Check if test has HPLC method and make it default method picked else pick the first listed method
+					if($hplcDefaultMethod){
+						$method_details = $hplcDefaultMethod;
+					}
+					else{
+						$method_details = Test_methods::getMethodsDefault($test[$i]);
+					}
+					//var_dump($method_details[0]['id']);
+
+
+					//Add to quotations components table
+					$qc = new Quotations_components();
+					$qc->component = $component_name;
+					$qc->quotations_id = $quotation_id.'-'.$b;
+					$qc->quotation_id = $quotation_id;
+					$qc->test_id = $test[$i];
+						if($test[$i] == '1'){					
+							if($followedBy){
+								$qc->method_id = $followedBy['followed_by_assay'][0]['id'];
+								$qc->method_charge = $followedBy['followed_by_assay'][0]['charge_'.$currency_small];
+							}
+							else{
+								$qc->method_id = $method_details[0]['id'];
+								$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+							}
+						}else if($test[$i] == '5'){
+							if($followedBy){
+								$qc->method_id = $followedBy['none_method'][0]['id'];
+								$qc->method_charge = 0;
+								}
+							else{
+								$qc->method_id = $method_details[0]['id'];
+								$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+								}
+							}
+						else{
+							$qc->method_id = $method_details[0]['id'];
+							$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+						}				
+					$qc->save();
+
+					//Update test total with default method charges
+					$tmc = Quotations_components::getComponentsTotal($quotation_id.'-'.$b, $test[$i]);
+					$total_methodCharge = $tmc[0]['component_total'];
+						//var_dump($total_methodCharge);
+
+					//Update Q Request Details with component total
+					$qr_where_array =  array('quotations_id' =>$quotation_id.'-'.$b, 'test_id' => $test[$i]);
+					$qr_update_array =  array('method_charge' => $total_methodCharge);
+
+					$this -> db -> where($qr_where_array);
+					$this -> db -> update('q_request_details', $qr_update_array);
+
+				}
+
+
+										//Get total for this batch only.
+										$b_total = Q_request_details::getBatchTotal($quotation_id.'-'.$b);
+										$batch_total = $b_total[0]['sum'];
+										//var_dump($b_total);
+						
+										//Update quotations final
+										$qb_where_array = array('quotations_id' => $quotation_id.'-'.$b);
+										$qb_update_array = array('amount'=>$batch_total);
+										$this -> db -> where($qb_where_array);
+										$this -> db -> update('quotations', $qb_update_array);
+				
+				
+										//Get new total
+										$main_total = Q_request_details::getTotal($quotation_id);
+										$total = $main_total[0]['sum'];
+										//var_dump($main_total);		
+				
+										//$quotation_extras = Quotations_final::getQuotationExtras($quotation_id);
+										//var_dump($quotation_no); 
+										$payable_amount = $total;
+										//$payable_amount = $total + $quotation_extras[0]['admin_fee'] + ($quotation_extras[0]['reporting_fee']/100*$total) - ($quotation_extras[0]['discount']/100*$total);
+				
+										//Update quotations final
+										$qf_where_array = array('quotation_no' => $quotation_no);
+										$qf_update_array = array('amount'=>$total, 'payable_amount'=>$payable_amount);
+										$this -> db -> where($qf_where_array);
+										$this -> db -> update('quotations_final', $qf_update_array);
+				
+				
+										//Update request table invoice status
+										/*$rq_where_array =  array('request_id'=>$ndqno);
+										$rq_update_array = array('invoice_status'=> 1);
+										$this -> db -> where($rq_where_array);
+										$this -> db -> update('request', $rq_update_array);
+										*/
+
+
+
+			}
+
+			//Get new total
+			$main_total = Q_request_details::getTotal($quotation_id);
+			$total = $main_total[0]['sum'];
+
+			//Set notes
+			$notes = "Initial quotation generated.";
+
+			//Add Invoice Tracking
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+
+
+
+
+		if($this->checkIfThisQuotationAlreadyPrinted($quotation_no) == false){
+			//Save to main quotation table
+			$q_f = new Quotations_final();
+			$q_f -> quotation_entries = 1;
+			$q_f -> quotation_no = $quotation_no;
+			$q_f -> client_id = $client_no;
+			$q_f -> currency = $currency;
+			$q_f -> amount = $total;
+			$q_f -> payable_amount = $total;
+			$q_f -> save();
+		}
+
+
+		//Initialize row at Quotation NOtes
+		$q_n = new Quotation_notes();
+		$q_n -> quotation_no = $quotation_no;
+		$q_n -> save();
+
+
+		//default quotations id
+		$quotations_id = $quotation_id.'-1';
+
+		//get redirect ids
+		$redirect_url = base_url().'client_billing_management/showBillPerTest/'.$quotations_id.'/quotations/tests/q_request_details/q_entry/quotation/'.$quotation_no;
+
 		
 
+		if (is_null($_POST)) {
+            echo json_encode(array(
+           		'status' => 'error',
+            	'message'=> 'Data was not posted.'
+            ));
+            }
+        else
+            {
+            echo json_encode(array(
+                'status' => 'success',
+                'message'=> 'Data added successfully',
+                'redirect_url' => $redirect_url
+            ));
+           }
+
+		}
+
+
+		public function addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total){
+
+			//*TEMPORARY HACK*// If user is a client, lock editing from client window
+			$this -> db -> where(array('quotation_no'=>$quotation_no));
+			$this -> db -> update('quotations_final', array('quotation_status'=>1));
+
+			//Add draft stage to invoice tracking table
+			$inv_t = new Invoice_tracking();
+			$inv_t->invoice_no = $quotation_no;
+			$inv_t->notes = $notes;
+			$inv_t->user_id = $user_id;
+			$inv_t->user_type_id = $user_type_id;
+			$inv_t->discount = 0;
+			$inv_t->batch_total = $batch_total;
+			$inv_t->amount = $total;
+			$inv_t->payable_amount = $payable_amount;
+			$inv_t->date = date('Y-m-d H:i:s');
+			$inv_t->save();
+		}
+
+
+
+		//Backgenerate invoice from quotation
+		public function generateQuotation (){
+
+			//Get drafting user details
+			$user_id = $this->session->userdata('user_id'); 
+			$user_type_id = $this->session->userdata('usertype_id'); 
+
+			//Get ndq no., client no.
+			$ndqno = $this->uri->segment(3);
+			$client_no = $this->uri->segment(4);
+
+			//Default No. of Batches
+			$no_of_batches = 1;
+
+			//Get client details
+			$client_details = Clients::getClientInfo($client_no);
+			//var_dump($client_details);
+
+			//Get tests
+			$tests = Request_details::getTests($ndqno);
+			$request_details = Request::getQuotationData($ndqno);
+
+			var_dump($tests);
+			
+			//Get currency from db, if NULL default to KES
+			if($request_details[0]['Dispatch_register']['currency'] != NULL ){
+				$cur = $request_details[0]['Dispatch_register']['currency'];
+			}else{
+				$cur = 'KES';
+			}
+
+			//Make Currency Small 
+			$currency_small = strtolower($cur);
+
+			//Get quotation number
+			$q_no = $this -> input -> post("quotation_no");
+		
+			//Get Quotation Id
+			$quotation_id = $this -> getQuotationId();
+
+			//Get Quotation Number
+			$quotation_no = 'INV-'.$ndqno;	
+
+			//Get followed by methods
+			$followedBy = $this->getFollowedBy($tests);
+
+
+			//Add to quotations final
+			$q_f = new Quotations_final();
+			$q_f -> quotation_entries = 1;
+			$q_f -> quotation_no = $quotation_no;
+			$q_f -> client_id = $client_no;
+			$q_f -> source_status = 'system_re';
+			$q_f -> currency = $cur;
+			$q_f -> save();
+
+			//Initialize row at Quotation Notes
+			$q_n = new Quotation_notes();
+			$q_n -> quotation_no = $quotation_no;
+			$q_n -> save();
+
+
+			//Loop through no. of batches
+			for($b=1;$b<=$no_of_batches;$b++){
+
+						//Set quotations_id
+						$quotations_id = $quotation_no.'-'.$b;
+
+						//Save Quotation
+						$quotation = new Quotations();
+						$quotation -> Dosage_form = $request_details[0]['Dosage_Form'];
+						$quotation -> client_email = $client_details[0]['email'];
+						$quotation -> Sample_name = $request_details[0]['product_name'];
+						$quotation -> Client_name = $client_details[0]['Name'];
+						$quotation -> Quotation_date = date('y-m-d');
+						$quotation -> No_of_batches = $no_of_batches;
+						$quotation -> Client_number = $client_no;
+						$quotation -> Quotation_id = $quotation_id;
+						$quotation -> Quotations_id = $quotation_no.'-'.$b;
+						$quotation -> Quotation_no = $quotation_no;
+						$quotation -> Quotation_status = 1;
+						$quotation -> ndq_ref = $ndqno;
+						$quotation -> Batch_id = $b;
+						$quotation -> Currency = $cur;
+						$quotation -> save();
+
+				//Loop through tests and save to quotations tests table
+				foreach ($tests as $key => $value) {
+
+						//Hold test id 
+						$test_id = $value['test_id']; 
+
+						//Save tests to quotation request details
+						$q_r = new Q_request_details();
+						$q_r -> test_id = $value['test_id'];
+						$q_r -> client_number = $client_no;
+						$q_r -> client_email = '';
+						$q_r -> quotation_id = $quotation_id;
+						$q_r -> quotations_id = $quotation_no.'-'.$b;
+						$q_r -> save();
+
+						//Get HPLC as default method
+					$hplcDefaultQuery = $this->db->query("SELECT * FROM `test_methods` WHERE `test_id` = $test_id AND name LIKE '%HPLC%'");
+					$hplcDefaultMethod = $hplcDefaultQuery->result_array();
+
+					//Check if test has HPLC method and make it default method picked else pick the first listed method
+					if($hplcDefaultMethod){
+						$method_details = $hplcDefaultMethod;
+					}
+					else{
+						$method_details = Test_methods::getMethodsDefault($value['test_id']);
+					}
+						//var_dump($method_details[0]['id']);
+
+						//Add to quotations components table
+						$qc = new Quotations_components();
+						$qc->component = $request_details[0]['product_name'];
+						$qc->quotations_id = $quotation_no.'-'.$b;
+						$qc->test_id = $value['test_id'];
+						if($followedBy){
+							if($value['test_id'] == '1'){
+								$qc->method_id = $followedBy['followed_by_assay'][0]['id'];
+							}else if($test[$i] == '5'){
+								$qc->method_id = $followedBy['none_method'][0]['id'];
+							}
+						} else{
+							$qc->method_id = $method_details[0]['id'];
+						}
+						$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+						$qc->save();
+
+						//Update test total with default method charges
+						$tmc = Quotations_components::getComponentsTotal($quotation_no.'-'.$b, $value['test_id']);
+						$total_methodCharge = $tmc[0]['component_total'];
+						//var_dump($total_methodCharge);
+
+						//Update Q Request Details with component total
+						$qr_where_array =  array('quotations_id' =>$quotation_no.'-'.$b, 'test_id' => $value['test_id']);
+						$qr_update_array =  array('method_charge' => $total_methodCharge);
+
+						$this -> db -> where($qr_where_array);
+						$this -> db -> update('q_request_details', $qr_update_array);
+				
+				}
+
+
+						//Get total for this batch only.
+						$b_total = Q_request_details::getBatchTotal($quotations_id);
+						$batch_total = $b_total[0]['sum'];
+		
+						//Update quotations final
+						$qb_where_array = array('quotations_id' => $quotations_id);
+						$qb_update_array = array('amount'=>$batch_total);
+						$this -> db -> where($qb_where_array);
+						$this -> db -> update('quotations', $qb_update_array);
+
+
+						//Get new total
+						$main_total = Q_request_details::getTotal($quotation_id);
+						$total = $main_total[0]['sum'];
+						//var_dump($main_total);		
+
+						$quotation_extras = Quotations_final::getQuotationExtras($quotation_no); 
+						$payable_amount = $total + $quotation_extras[0]['admin_fee'] + ($quotation_extras[0]['reporting_fee']/100*$total) - ($quotation_extras[0]['discount']/100*$total);
+
+						//Update quotations final
+						$qf_where_array = array('quotation_no' => $quotation_no);
+						$qf_update_array = array('amount'=>$total, 'payable_amount'=>$payable_amount);
+						$this -> db -> where($qf_where_array);
+						$this -> db -> update('quotations_final', $qf_update_array);
+
+
+						//Update request table invoice status
+						$rq_where_array =  array('request_id'=>$ndqno);
+						$rq_update_array = array('invoice_status'=> 1);
+						$this -> db -> where($rq_where_array);
+						$this -> db -> update('request', $rq_update_array);
+
+			}
+
+			//Set notes
+			$notes = "Reverse engineered invoice from existing analysis request.";
+
+			//Add Invoice Tracking
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+
+		}
+
+
+		public function updateTotals($quotations_id, $quotation_id, $quotation_no, $notes){
+
+			//Get user id info
+			$user_id = $this->session->userdata('user_id'); 
+			$user_type_id = $this->session->userdata('usertype_id'); 
+
+			//Get total for this batch only.
+			$b_total = Q_request_details::getBatchTotal($quotations_id);
+			$batch_total = $b_total[0]['sum'];
+
+			//Update quotations final
+			$qb_where_array = array('quotation_id' => $quotation_id);
+			$qb_update_array = array('amount'=>$batch_total);
+			$this -> db -> where($qb_where_array);
+			$this -> db -> update('quotations', $qb_update_array);
+
+			//Get new total
+			$main_total = Q_request_details::getTotal($quotation_id);
+			$total = $main_total[0]['sum'];
+			//var_dump($main_total);		
+
+			$quotation_extras = Quotations_final::getQuotationExtras($quotation_no); 
+			$payable_amount = $total + $quotation_extras[0]['admin_fee'] + ($quotation_extras[0]['reporting_fee']/100*$total) - ($quotation_extras[0]['discount']/100*$total);
+
+			//Update quotations final
+			$qf_where_array = array('quotation_no' => $quotation_no);
+			$qf_update_array = array('amount'=>$total, 'payable_amount'=>$payable_amount);
+			$this -> db -> where($qf_where_array);
+			$this -> db -> update('quotations_final', $qf_update_array);
+		
+			//Add Invoice Tracking
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+
+		}
+
+
+
+		public function addTestView(){
+
+
+			//Get uris
+			$data['currency'] = $currency = $this -> uri -> segment(4);
+			$data['quotations_id'] = $qid = $this -> uri -> segment(3);
+			$data['quotation_id'] = $this -> uri -> segment(5);
+
+			//Get components
+			$data['components'] = Quotations_components::getQuotations_components($qid, 'quotations_id');
+
+			//Pass to view
+			$data['content_view'] = "quotation_addTest_v";
+	        $this->load->view('template_next', $data);
+
+		}
+
+
+
+
+
+		public function addComponentView(){
+
+
+
+			//Get uris
+			$data['currency'] = $currency = $this -> uri -> segment(4);
+			$data['quotations_id'] = $qid = $this -> uri -> segment(3);
+
+			//Get components
+			$data['components'] = Quotations_components::getQuotations_components($qid, 'quotations_id');
+
+			//Get Tests
+			$data['tests'] = Q_request_details::getChargesPerClient($qid);
+
+			//Pass to view
+			$data['content_view'] = "quotation_addComponent_v";
+	        $this->load->view('template_next', $data);
+
+		}
+
+		public function addComponent(){
+
+			//Get inputs
+			$components = $this->input->post('components');
+			$quotations_id = $this->uri->segment(3);
+			$currency =  $this->uri->segment(4);
+			$currency_small = strtolower($currency);
+
+			//Get no. of batches, quotations_id
+			$quotation_details = Quotations::getDetailsForQuotation($quotations_id);
+			$no_of_batches = $quotation_details[0]['No_of_batches'];
+			$quotation_id = $quotation_details[0]['Quotation_id'];
+
+			//Loop through components table, form tests input names, put in array
+			foreach($components as $key => $value){
+
+				//Replace spaces in component name with underscores
+				$component = preg_replace("/[^a-zA-Z0-9\']/", "_", $value);
+
+				var_dump($component);
+
+				//Get tests for each component
+				$tests = $this->input->post($component.'_tests');
+
+				for($i=1;$i<=$no_of_batches;$i++){
+
+					foreach($tests as $test){
+
+						//Get current test charge
+						$current_test_charge = Q_request_details::getTestMethodCharge($quotation_id.'-'.$i,$test);
+						$test_charge = $current_test_charge[0]['method_charge'];
+						var_dump($current_test_charge);
+
+
+						//Get additional component charge
+						$additional_component = Test_methods::getAdditionalComponent($test);
+						
+						//Check if test has an additional component charge attached to it, if not default to first method
+						if($additional_component){
+							$method_details = $additional_component;
+						}else{
+							$method_details = Test_methods::getMethodsDefault($test);
+						}
+
+						//Add to quotations components table
+						$qc = new Quotations_components();
+						$qc->component = $value;
+						$qc->quotations_id = $quotation_id.'-'.$i;
+						$qc->quotation_id = $quotation_id;
+						$qc->test_id = $test;
+						$qc->method_id = $method_details[0]['id'];
+						$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+						$qc->save();
+
+						//Update quotation request details
+						$test_total = $method_details[0]['charge_'.$currency_small] + $test_charge;
+
+
+						$qr_where_array = array('quotations_id' => $quotation_id.'-'.$i,'test_id'=>$test);
+						$qr_update_array = array('method_charge'=>$test_total);
+						$this -> db -> where($qr_where_array);
+						$this -> db -> update('q_request_details', $qr_update_array);
+					}
+
+				}
+			}
+
+
+			//Initialize Components and Tests Arrays
+			$componentsList = implode(",", $components);
+			$testsNames =  [];
+
+			//Loop through tests and get test names
+			foreach($tests as $test){
+				$testName = Tests::getTestName3($test);
+				array_push($testsNames, $testName[0]['Name']);
+			}
+
+			//Get test names
+			$testsList = implode(",", $testsNames);
+
+			//Get notes
+			$notes = 'Added component(s) '.$componentsList.' for '.$testsList;
+			
+			//Update totals
+			$quotation_no = $this->getQuotationNoFromDb($quotations_id);
+			$this->updateTotals($quotations_id, $quotation_id, $quotation_no, $notes);
+		}
+
+
+
+		public function removeComponent(){
+			
+			//Get parameters
+			$quotations_id =  $this -> uri -> segment(3);
+			$component_id =  $this-> uri -> segment(4);
+			$component_name = $this -> uri -> segment(5);
+
+
+
+			//Get total charge for this component
+			$c_total = Quotations_components::getComponentTotal($quotations_id, $component_name);
+			$component_total = $c_total[0]['component_total'];
+
+			//Substract this component total from test total if 
+			if($component_total != 0){
+				echo '';
+			}
+
+		
+			//Remove component from db0
+			/*$this->db->delete('quotations_components', array('quotations_id'=>$quotations_id, 'component'=>$component_name));*/
+
+
+			//Update totals
+
+
+		}
+
+		public function addTest(){
+
+			//Get inputs, parameter
+			$test_name = $this->input->post('test');
+			$quotations_id = $this->uri->segment(3);
+			$quotation_id = $this->uri->segment(4);
+
+			//get quotation batches
+			$batches = Quotations::getQuotationIds($quotation_id);
+
+			//Get test id from test name
+			$test= Tests::getTestIdFromName($test_name);
+			$test_id = $test[0]['id'];
+
+			//Initialize array to hold method charges
+			$method_charges =  array();
+
+			//Get components
+			$components = Quotations_components::getQuotations_components($quotations_id, 'quotations_id');
+
+			//Loop through all batches
+			foreach($batches as $batch){
+
+				//var_dump($batch);			
+
+				//Loop through components while saving tests?
+				foreach($components as $component){
+
+					//Check component
+					$component_name = $component['component'];
+
+					//Get Method
+					$method = $this->input->post($component_name.$test_name);
+					
+					//Get Method Charge
+					$method_charge =  $this->input->post($component_name.$test_name."_charge");
+
+					//var_dump($method_charge);
+
+					//Save quotations components
+					if($method!=null){
+
+						//Add to Quotation Components Table
+						$qco =  new Quotations_components();
+						$qco->component = $component_name;
+						$qco->quotations_id = $batch['Quotations_id'];
+						$qco->test_id = $test_id;
+						$qco->method_id = $method;
+						$qco->method_charge = $method_charge;
+						$qco->save();
+
+						//Put charges into array
+						array_push($method_charges, $method_charge);
+					}
+
+				}
+
+				//Save new test
+				$qr = new Q_request_details();
+				$qr->quotation_id = $batch['Quotation_id'];
+				$qr->quotations_id = $batch['Quotations_id'];
+				$qr->client_number = $batch['Client_number'];
+				$qr->client_email = $batch['client_email'];
+				$qr->test_id = $test_id;
+				$qr->method_charge = array_sum($method_charges);
+				$qr->save();
+
+			}
+		}
+
+		//Approve Invoice at Reviewer level
+		public function approveInvoice(){
+
+			//Get approving user details
+			$user_id = $this->session->userdata('user_id'); 
+			$user_type_id = $this->session->userdata('usertype_id'); 
+
+			//Get discount
+			$invoice_discount = $this->input->post('invoice_discount');
+
+			//Get identifier
+			$request_id =  $this->uri->segment(3);
+			$inv_id = $this->uri->segment(4);
+
+			//Extract Invoice Id
+			$invoice_id = substr($inv_id, 0, -2);
+
+			//Update request table
+			$this->db->where('request_id', $request_id);
+			$this->db->update('request', array('invoice_status'=>2));
+
+			//Update Invoice
+			$this->db->where('request_id', $request_id);
+			$this->db->update('request', array('invoice_status'=>2));	
+
+			//Get amount
+			$q_amount = Quotations_final::getAmount($invoice_id);
+			$amount = $q_amount[0]['amount'];
+			$payable_amount = (100-$invoice_discount)/100*$amount;
+
+			//Update Discount
+			$this->db->where('quotation_no', $invoice_id);
+			$this->db->update('quotations_final', array('discount'=>$invoice_discount, 'payable_amount'=>$payable_amount));
+
+
+			//Send to person with corresponding coa*
+			
+
+			$notes = "Approved Invoice";
+
+			//Update Tracking
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+		}
+
+
+		public function approveQuotation(){
+
+			//Get approving user details
+			$user_id = $this->session->userdata('user_id'); 
+			$user_type_id = $this->session->userdata('usertype_id'); 
+
+			//Get identifier
+			$request_id =  $this->uri->segment(3);
+			$inv_id = $this->uri->segment(4);
+			$source = $this->uri->segment(5);
+
+			//Extract Invoice Id
+			$invoice_id = substr($inv_id, 0, -2);
+
+			//Update request table
+			if($source == 'invoice'){
+				$this->db->where('request_id', $request_id);
+				$this->db->update('request', array('invoice_status'=>2));
+				$q_amount = Quotations_final::getAmount($invoice_id);
+				$quotation_no = $invoice_id;
+		
+			} else if($source == 'quotation'){
+				$this->db->where('quotation_id', $invoice_id);
+				$this->db->update('quotations', array('quotation_status'=>2));
+				$q_amount = Quotations_final::getAmount($request_id);
+				$quotation_no = $request_id;
+			}
+
+			$total = $q_amount[0]['amount'];
+			$payable_amount = $total;
+			$b_total = Q_request_details::getBatchTotal($inv_id);
+		    $batch_total = $b_total[0]['sum']; ;
+		   
+			//Send to person with corresponding coa
+			$notes = "Approved ". ucfirst($source);
+
+			//Add Tracking
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+		}
+
+
+		public function getInvoiceTracking(){
+
+			//Get approving user details
+			$user_id = $this->session->userdata('user_id'); 
+			$user_type_id = $this->session->userdata('usertype_id'); 
+
+			//Get invoice no
+			$inv_id = $this->uri->segment(3);
+			//$invoice_id = substr($inv_id, 0, -2); 
+
+			//Get invoice tracking data
+			$inv_track_data = Invoice_tracking::getTrackingByInvoice($inv_id);
+
+			if (!empty($inv_track_data)) {
+	            foreach ($inv_track_data as $i) {
+	                $data[] = $i;
+	            }
+            echo json_encode($data);
+	        } else {
+	            echo "[]";
+	        }
+		}
+
+
+		public function checkMultiStatus(){
+			$tname = $this -> uri -> segment(3);
+			$this->getMulticStatus($tname);
+		}
+
+		public function getMethods(){
+			
+			//Get uri segment, decode to remove spaces, send to CORE method to  get methods
+			$tname = $this -> uri-> segment(3);
+			$testname = urldecode($tname);
+
+			//Get currency
+			$currency = $this -> uri -> segment(4);
+
+			//Get methods
+			$this-> getMethodsForTest($testname, $currency);
+			
+		}
+
+
+
+		public function copyPasteAddEntry($q,$s,$b){
+			
 			for($i=0;$i<count($test);$i++){
 				$test_charges = Tests::getCharges($test[$i]);
 				$request = new Q_request_details();
@@ -429,26 +1750,78 @@ class Quotation extends MY_Controller {
 				$request -> client_email = $email;
 				$request -> quotations_id = $quotation_id;
 				if (!empty($test_charges)) {
-                	$request-> test_charge = $test_charges[0]['Charge'];
-            	}
+                	$request-> test_charge = $test_charges[0]['Charge_'.strtolower($currency)];
+				}
 				$request -> save();
+				//var_dump($test_charges[0]['Charge']);
 			}
+			
+			
+				//Save name of dynamic temp table in variale
+				$tmp_table = 'quotation_tmp';
+				
+				//Select all from main table
+				$select_all = "SELECT * FROM $t WHERE $c = '$o'";
+				$sa = $this->db->query($select_all)->result_array();
+				echo count($sa);
+				
+				//Select Max id
+				$mi = $this->db->query("SELECT MAX(id) as max_id FROM $t;")->result_array();
+				$max_id = $mi[0]['max_id'];
+				//var_dump($max_id);
+				
+				//Select First id
+				$fi = $this->db->query("SELECT id as first_id FROM $t WHERE $c = '$o' ORDER BY id ASC LIMIT 1;")->result_array();
+				$first_id = $fi[0]['first_id'];
+				
+				//Create temp table
+				$create_temp_table = "CREATE TEMPORARY TABLE $tmp_table ". $select_all;
+				
+				//Update unique columns
+				$update_unique_field = "UPDATE $tmp_table SET $c ='$n' WHERE $c = '$o';";
+				$update_id = "UPDATE $tmp_table SET id =((SELECT MAX(id) FROM $t) + 1) WHERE $c = '$n';";
+				
+				//Insert into table
+				$insert_into_table = "INSERT INTO $t SELECT * FROM $tmp_table WHERE $c = '$n';";
+            
+				$this->db->trans_start();
+				$this->db->query($create_temp_table);
+				$this->db->query($update_unique_field);
+				for($i=0;$i<count($sa);$i++){
+					$new_id = $max_id+1+$i;
+					$old_id = $first_id + $i;
+					$this->db->query("UPDATE $tmp_table SET id = '$new_id' WHERE id = '$old_id';");
+				}
+				$this->db->query($insert_into_table);
+				$this->db->query("DROP table $tmp_table");
+				$this->db->trans_complete();
+				
+				$this->output->enable_profiler(TRUE);
 		}
-
+		
 		public function getQuotationNos(){
 			$cid = $this -> uri -> segment(3);
 			$quotation_nos = Quotations::getNos($cid);
 			echo json_encode($quotation_nos);
 		}
 
-		public function getClientNumber($client_number){
+		public function getClientNumber($client_number, $q_no){
 			if (!empty($client_number)) {
-	            $client_number = $this->input->post("client_id");
+				if($q_no != 'New'){
+					$client_no  = Quotations::getClientNo($q_no);
+					//var_dump($client_no);
+					$client_number = $client_no[0]['Client_number'];
+				}
+				else{
+					$client_number = $this->input->post("client_id");
+				}
+	            
 	        } else {
 	            $cid = Clients::getLastId();
 	            $client_number = $cid[0]['max'] + 1;
-	            $this -> saveClientAsUser();
+	            $this -> saveNewClient($client_number);
 	        }
+
 	        return $client_number;
 		}
 
@@ -463,7 +1836,7 @@ class Quotation extends MY_Controller {
 			$serial = sprintf('%02s', $quotation_serial);
 
 			//Generate quotation number
-			$quotation_no = 'Q-'.date('y-m')."-".$serial;
+			$quotation_no = 'Q-'.date('ymd')."-".$serial;
 
 			return $quotation_no;
 		}
@@ -472,7 +1845,7 @@ class Quotation extends MY_Controller {
 		public function getQuotationNo($c, $q){
 
 			//Condition checks whether quotation_no has been selected in generate quotation view
-			if(!empty($q)){
+			if(!empty($q) && $q != 'New'){
 				$quotation_no = $q;
 			}
 			else if(empty($q) || $q == 'New'){
@@ -487,7 +1860,7 @@ class Quotation extends MY_Controller {
 				$serial = sprintf('%02s', $quotation_serial);
 
 				//Generate quotation number
-				$quotation_no = 'NDQ-'.$c."-".date('y-m')."-Q-".$serial;
+				$quotation_no = 'NDQ-'.$c."-".date('ymd')."-Q-".$serial;
 			}
 
 			return $quotation_no;
@@ -495,6 +1868,7 @@ class Quotation extends MY_Controller {
 
 
 	public function generate(){
+		$data['currency'] = Currencies::getAll();
 		$data['lastclientno'] = Quotations::getLastId();
 		$data['dosageforms'] = Dosage_form::getAll();
 		$data['tests'] = Tests::getAll();
@@ -505,7 +1879,32 @@ class Quotation extends MY_Controller {
 		$data['scripts'] = array("jquery.ui.core.js","jquery.ui.datepicker.js","jquery.ui.widget.js");		
 		$data['styles'] = array("jquery.ui.all.css");
 		$data['content_view'] = "generate_quotation_v";
-		$data['quotation_no'] = $this -> getQuotationId();
+		$data['quotation_no'] = $qid = $this -> getQuotationId();
+		$data['qid'] = $qid.'-1';
+		$data['q_no'] = $this -> uri -> segment(7);
+		$data['source'] = $this->uri->segment(3);
+		$data['q_no_add'] = $this->uri->segment(4);
+		
+		if(empty($data['q_no'])&& $data['source'] != 'add'){
+			$reqid = $data['quotation_no'];
+			$newstatus = 1;
+		}
+		else if(empty($data['q_no'])){
+			$reqid = $data['q_no_add'];
+			$newstatus = 0;
+		}else if($data['source'] != 'add'){
+			$reqid = $data['q_no'];
+			$newstatus = 0;
+		}
+		
+		$data['newstatus'] = $newstatus;
+		$data['qn'] = $reqid;
+		
+		/*if($data['source'] == 'add'){}*/
+		$data['quotation_info'] = Quotations::getQuotationDetailsGlobal($reqid);
+		$data['no_of_entries'] = Quotations::getNoOfEntries($reqid);
+		$data['no_of_entries_done'] = Quotations::getCompletedEntries($reqid);
+		
 		//$data['previous_quotations'] = $this -> getPreviousQuotations(); 
 		$this -> load -> view('template1', $data);
 	}
@@ -518,6 +1917,8 @@ class Quotation extends MY_Controller {
 
 
 	public function printQuotation(){
+		//Get current user
+		$data['current_user'] = $this->getCurrentUser();
 
         //DOMpdf initialization
         require_once("application/helpers/dompdf/dompdf_config.inc.php");
@@ -533,23 +1934,54 @@ class Quotation extends MY_Controller {
 
        	//Get tables from uri segments
        	$data['table'] = $table = $this -> uri -> segment(4);
-		$data['table2'] = $this -> uri -> segment(5);
-		$data['table3'] = $this -> uri -> segment(6);
+		
+		//Get Extra Billing Columns
+		$sql = "SELECT COLUMN_NAME as 'column', COLUMN_COMMENT as 'comment' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'enqcl' AND TABLE_NAME = 'quotations' AND COLUMN_COMMENT <> '';";	
+		$query = $this->db->query($sql);
+		$data['extra_columns'] = $extra_columns = $query->result_array();
+		
+		//Get extra
+		$data['reporting_fee_p'] = $reporting_fee_p = $this -> uri -> segment(7);
+		$data['admin_fee'] = $admin_fee = $this -> uri -> segment(8);
+		$data['discount_p'] = $discount_p = $this -> uri -> segment(9);
+		
+		//Update Quotations table with extras
+		$qu_array = array(
+            'reporting_fee' => $reporting_fee_p,
+            'admin_fee' => $admin_fee,
+            'discount' => $discount_p
+        );
+		
+		$data['percentage_a'] = $qu_array;
 
-		//Get Signatory Details
-		$signatory_title = $this -> uri -> segment(7);
-		$signatory = $this -> uri -> segment(8);
+		$this->db->where('quotations_id', $reqid);
+		$this->db->update('quotations', $qu_array);
+
+		//Get Notes
+		$quotation_note = $this -> input -> post('quotation_note');
+		
+		//Update Notes at Quotation
+		$this->db->where('quotation_no', $reqid);
+		$this->db->update('quotations_final', array('quotation_status'=>2));
+
+		//Update Quotations Final
+		$this->db->where('quotation_no', $reqid);
+		$this->db->update('quotation_notes', array('system_note'=>$quotation_note));
+
+		//Get Signatory Details	
+		$signatory_title = $this -> uri -> segment(5);
+		$signatory = $this -> uri -> segment(6);
 
 		//Replace special characters in signatory details
-		$data['signatory'] = str_replace("%20", " ", $signatory_title);
-		$data['signatory_title'] = str_replace("%20", " ", $signatory);
+		$data['signatory'] = $signatory_n = str_replace("%20", " ", $signatory_title);
+		$data['signatory_title'] = $signatory_t = str_replace("%20", " ", $signatory);
 
 		//Get method
 		$data['method'] = $this -> router -> fetch_method();
 
 		//Get client id
-		$cid = Quotations::getClientId($data['reqid']);
-		$client_id = $data['cid'] = $cid['distinct'];
+		$cid = Quotations_final::getClient($data['reqid']);
+		$client_id = $data['cid'] = $cid[0]['client_id'];
 
 		//Do condition for getting billing tables e.t.c
 			if($table == 'request'){
@@ -561,6 +1993,10 @@ class Quotation extends MY_Controller {
 				$ref = $main_table.'_id';
 				$status = 'proforma_print_status';
 				$tests_index = 4;
+				
+				//Get Currency
+				$currency = Quotations::getCurrency($reqid);
+				$c = $currency[0]['Currency'];
 			}
 			else if($table == 'quotations'){
 				$id = 'quotations_id';
@@ -571,6 +2007,10 @@ class Quotation extends MY_Controller {
 				$ref = $register.'_id';
 				$status = 'quotation_print_status';
 				$tests_index = 6;
+				
+				//Get Currency
+				$currency = Quotations_final::getCurrency($reqid);
+				$c = $currency[0]['currency'];
 			}
 
 
@@ -578,23 +2018,69 @@ class Quotation extends MY_Controller {
        	$saveTo = './quotations';
        	$quotation_name = "Quotation_" . $data['reqid'] . ".pdf";
 
-
-       	$qt_no = $this -> getQuotationNoFromDb($data['reqid']);
+       	//$qt_no = $this -> getQuotationNoFromDb($data['reqid']);
 
 		$data['test_data'] = $billing_table::getChargesPerClient($data['reqid']);
-		$data['invoice_data'] = $data['i_data'] = $main_table::getInvoiceDetailsPerClient($client_id, $qt_no);
- 		
+		$data['invoice_data'] = $data['i_data'] = $main_table::getInvoiceDetailsPerClient($client_id, $reqid);
+		if($main_table =="Quotations"){
+			$data['qid'] = $main_table::getQid($reqid);	
+		}
+		else{
+			$data['qid'] = $reqid;
+		}
+		$data['billing_table'] = $billing_table;
+		$data['main_table'] = $main_table;
+ 		$data['currency'] = $c;
+		$data['admin_fee'] = $admin_fee;
+		
+		
+		//Get default for all batches of this quotation
+		$data['default_notes'] = Quotation_notes::getAllDefaultNotes();
+
+		//Get quotation specific notes 
+		$data['special_notes'] = Quotation_notes::getAllSpecialNotes($reqid);
+		
 		//Get Total
-		$data['total'] = $register::getTotalPerClient($client_id, $qt_no);
+		$data['total'] = $register::getTotalPerClient($client_id, $reqid);
 		$total_cost = $data['total'][0]['sum'];
 		
+		//Adjusted Total
+		$adjusted_total = $total_cost + $admin_fee + ($total_cost*$reporting_fee_p/100) - ($total_cost*$discount_p/100);
+		
+		//Consolidate values and keys arrays to form single extras array 
+		$xt = array();
+		$u = 7;
+		
+		foreach($extra_columns as $xc){
+			
+			//Get input value from extras inputs
+			$val = $this -> uri -> segment($u++);
+			//If value is not 0 or blank
+			//If the value is tagged as percentage , divide by 100 then multiply by total_cost
+			
+			$tag = $xc['comment'];
+			if($val != 0 ){
+				if($tag == '%'){
+					$amount = $val/100*$total_cost;
+				}
+				else{
+					$amount = $val;
+				}
+				//Make column key, amount value
+				$xt[$xc['column']] = $amount;
+			}
+		}
+		
+		//Insert in array to reference in quotations view
+		$data['xtra_columns'] = $xt;
+		
 		//Push amounts into array that generates totals footer
-		$data['tr_array'] = array('TOTAL COST'=>$total_cost);	
+		$data['tr_array'] = array('TOTAL COST'=>$adjusted_total);	
 		
 		//Push to view
         //$data['settings_view'] = "quotation_multiple_v";
         $html = $this->load->view('quotation_multiple_v', $data, TRUE);
-       // $this -> base_params($data);
+        //$this -> base_params($data);
         
         
         $dompdf->load_html($html);
@@ -605,8 +2091,78 @@ class Quotation extends MY_Controller {
        //Set invoice print status
        $this -> setInvoicePrintStatus($reqid, $saveTo, $quotation_name, $main_table, $ref, $status);
 
-        
+       //Save details of printed quotation
+
+
+       //Check if this quotation had been printed before, if had set active status of rest of quotation entries to zero
+       if($this->checkIfThisQuotationAlreadyPrinted($reqid) == true){
+       		
+       		$this->db->where('quotation_no', $reqid);
+			$this->db->update('quotations_final', array('admin_fee' => $admin_fee, 'reporting_fee' => $reporting_fee_p,
+				'discount' => $discount_p,
+				'amount' => $total_cost,
+				'payable_amount' => $adjusted_total,
+				'signatory_title' => $signatory_t,
+				'signatory_name' => $signatory_n,
+				'print_status' => 1,
+				'date_printed' => date('Y-m-d'),
+            	'quotation_status' => 2
+				)
+			);
+       }
+       else{
+
+       	//Save Quotation
+		$q_f = new Quotations_final();
+		$q_f -> quotation_no = $reqid;
+		$q_f -> client_id = $client_id;
+		$q_f -> admin_fee = $admin_fee;
+		$q_f -> reporting_fee = $reporting_fee_p;
+		$q_f -> discount = $discount_p;
+		$q_f -> amount = $total_cost;
+		$q_f -> payable_amount = $adjusted_total;
+		$q_f -> signatory_title = $signatory_t;
+		$q_f -> signatory_name = $signatory_n;
+		$q_f->  date_printed = date('Y-m-d');
+		$q_f->  print_status = 1;
+		$q_f->	quotation_status=1;
+		$q_f -> save();
+		
+		} 
+
+		
 	}
+
+
+	public function editClient(){
+		$client_id =  $this -> uri -> segment(3);
+		$data['client_info'] = $this->getAllClientInfoExtended($client_id);
+		$data['content_view'] = "client_edit_global";
+        $this->load->view('template_next', $data);    
+	}
+
+	public function printSingleQuotation(){
+
+		$quotation_id = $this->uri->segment(3);
+		$data['quotations_id'] = $quotation_id;
+		$qn = Quotations::getQuotationParameters($quotation_id);
+		$qno =$data['qno']= $qn[0]['Quotation_no'];
+
+		$data['quotation_summary']= Quotations::getQuotationSummary($qno);
+		$data['content_view'] = 'quotation_single_v';
+		$this -> load -> view('template1', $data);
+	}
+
+
+		public function checkIfThisQuotationAlreadyPrinted($q){
+			
+			$qf = Quotations_final::checkEntry($q);
+			
+			if($qf){
+				return true;
+			}
+			return false;
+		}
 
 		public function getQuotationNoFromDb($r){
 			//Get Quotation No.
@@ -765,6 +2321,9 @@ class Quotation extends MY_Controller {
 		$discount_percentage = $client_discount_percentage[0]['discount_percentage'];
 		$discount_title = 'DISCOUNT '. $discount_percentage.'%';
 	
+		//Test Discount
+		$data['disc'] = $client_discount_percentage;
+	
 		//Compute Discounts
 		$discount = $discount_percentage/100 * $total_cost;
 		$amount_payable = $total_cost - $discount;
@@ -784,26 +2343,27 @@ class Quotation extends MY_Controller {
 		//Get method 
 		$data['method'] = $this -> router -> fetch_method();
 
-		//Get Signatory Details
-
-		$signatory = $this -> uri -> segment(8);
-		$signatory_title = $this -> uri -> segment(9);
-
-		//Replace special characters in signatory details
-		$data['signatory'] = str_replace("%20", " ", $signatory_title);
-		$data['signatory_title'] = str_replace("%20", " ", $signatory);
-
-		//Push to view
-        //$html = 
-		//$this->load->view('invoice_pdf_v', $data, TRUE);
-        
-		$html = $this -> load -> view('invoice_pdf_v', $data, TRUE);	
-		$dompdf->load_html($html);
-        $dompdf->render();
-        write_file($saveTo . "/" . $invoicename, $dompdf->output());
+		//Get Default Signatory Details - Get Director
+		$data['signatory']  = User::getDirector();
 		
-        //Set invoice print status
-        $this -> setInvoicePrintStatus($reqid, $saveTo, $invoicename, $main_table, $ref, $status);
+		//Get action to be performed from button value
+		$action = $this->uri->segment(8);
+		
+		//Pass action variable to data array
+		$data['action'] = $action;
+		
+		//Perform action on the invoice view, depending on button clicked
+        if($action == 'print'){
+			//Print invoice to pdf
+			$html = $this -> load -> view('invoice_pdf_v', $data, TRUE);	
+			$dompdf->load_html($html);
+			$dompdf->render();
+			write_file($saveTo . "/" . $invoicename, $dompdf->output());
+		}
+		else if($action == 'view'){
+			$data['content_view'] = 'invoice_pdf_v';
+			$this -> load -> view('template1', $data);
+		}
 	}
 
 	public function showInvoiceBeforePrint(){
@@ -823,14 +2383,14 @@ class Quotation extends MY_Controller {
 		$data['signatories'] = User::getSignatories();
 
 		//Get Invoice Data to go to pdf print
-		$data['test_data'] = Invoice_billing::getChargesPerClient($data['reqid']);
+		$data['test_data'] = Client_billing::getChargesPerClient($data['reqid']);
 		$data['invoice_data'] = Request::getInvoiceDetails($data['reqid']);
 
 		//Get originator method
 		$data['method'] = $this -> router -> fetch_method();
 
 		//Get Total
-		$data['total'] = Invoice_billing::getTotal($data['reqid']);
+		$data['total'] = Client_billing::getTotal($data['reqid']);
 		$total_cost = $data['total'][0]['sum'];	
 
 		//Get Discount Data

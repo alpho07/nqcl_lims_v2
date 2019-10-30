@@ -39,7 +39,7 @@ $('#editTest<?php echo $test_id ?>').submit(function(e){
 	var form = $("#editTest<?php echo $test_id ?>");
 
 	//Submit Url
-	var url = "<?php echo base_url().'quotation/updateCompendia/'.$quotations_id.'/'.$test_id.'/'.$test_name.'/'.$currency?>";
+	var url = "<?php echo base_url().'quotation/updateCompendia/'.$quotations_id.'/'.$test_id.'/'.$test_name.'/'.$currency.'/'.$current_compendium?>";
 
 	console.log(url);
 

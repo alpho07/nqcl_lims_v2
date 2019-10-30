@@ -19,6 +19,15 @@ class Compendia extends Doctrine_Record {
 		return $compendia;
 	}
 
+	public static function getCompendiaName($id) {
+		$query = Doctrine_Query::create() 
+		-> select("*") 
+		-> from("compendia")
+		-> where("id = ?", $id);
+		$compendia = $query -> execute(array(), Doctrine::HYDRATE_ARRAY);
+		return $compendia;
+	}
+
 
 	
 }
