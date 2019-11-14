@@ -517,6 +517,7 @@ $(document).ready(function(){
 			width: 960,
 			'afterClose':function(){
 				$('#breakdown').DataTable().ajax.reload();
+				$('#invoice_tracking_table').DataTable().ajax.reload();
 			}
 		})
 

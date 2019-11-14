@@ -51,13 +51,19 @@ class Quotation extends MY_Controller {
 		var_dump($old_compendia_id);
 
 
+		//Get test name
+		$testName = Tests::getTestNameSimple($test_id);
+
+
 		//Get compendia
 		$compendia_id = $this -> input -> post('compendia');
 
 		//Check batch status
 		if($batch_status == 0){
+			$tests_changed = $testName[0]['Name'];
 			$where_array = array('quotations_id'=> $qid, 'test_id'=>$test_id);
 		}else{
+			$tests_changed = "All Tests";
 			$where_array = array('quotations_id'=> $qid);
 		}
 
@@ -74,12 +80,15 @@ class Quotation extends MY_Controller {
 		var_dump($compendia_id);
 		var_dump($old_compendia_details);
 		var_dump($new_compendia_details);
+
 		
 		//Get update of compendia in text
-		$notes = "Changed compendium from ".$old_compendia_details[0]['name']." to ".$new_compendia_details[0]['name'];
+		$notes = "Changed ".$tests_changed." compendium from ".$old_compendia_details[0]['name']." to ".$new_compendia_details[0]['name'];
 
 		//Add to Invoice Tracking
-		$insertIntoInvoiceTracking = "INSERT INTO invoice_tracking(invoice_no, quotation_no, stage, notes, user_id, user_type_id, discount, amount, batch_total,payable_amount) SELECT invoice_no, quotation_no, stage, '$notes', $user_id, $user_type_id, discount, amount, batch_total,payable_amount FROM invoice_tracking WHERE quotation_no IN ('$qid')";
+		$insertIntoInvoiceTracking = "INSERT INTO invoice_tracking(invoice_no, quotation_no, stage, notes, user_id, user_type_id, discount, amount, batch_total,payable_amount) SELECT DISTINCT invoice_no, quotation_no, stage, '$notes', $user_id, $user_type_id, discount, amount, batch_total,payable_amount FROM invoice_tracking WHERE quotation_no IN ('$qid') ";
+
+		var_dump($insertIntoInvoiceTracking);
 
 		//Run query
 		$this->db->query($insertIntoInvoiceTracking);
@@ -1746,6 +1755,28 @@ class Quotation extends MY_Controller {
 	        } else {
 	            echo "[]";
 	        }
+		}
+
+
+		public function showInvoiceTrackingAll(){
+
+			//Get unique id
+			$data['rid'] = $this -> uri -> segment(3);
+			
+			//Get tables
+			$data['table'] = $this -> uri -> segment(4);
+			$data['table2'] = $this -> uri -> segment(5);
+			$data['table3'] = $this -> uri -> segment(6);
+
+			//Get client id
+			$data['client_id']  = $this -> uri -> segment(7);
+
+			//Get list of eligible signatories
+			$data['signatories'] = User::getSignatories();
+
+			//Set view, load it
+			$data['content_view'] = 'invoice_show_tracking_v';
+			$this -> load -> view('template1', $data);	
 		}
 		
 		
