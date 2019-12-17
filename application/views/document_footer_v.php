@@ -5,15 +5,6 @@
 	<?php }?>	
 </div>
 <div class="spacer">&nbsp;</div>
-<div class ="quotation_notes">
-	<?php //var_dump($current_user) ?> 
-		<p><strong><?php if($current_user['title']) {echo $current_user['title']."&nbsp;";} echo $current_user['full_name'] ?></strong></p>
-		<p><?php $unit = Units::getUnitFromId($current_user['user_unit']); if($unit) {echo $unit[0]['name'];} ?></p>
-		<p>National Quality Control Laboratory</p>
-		<p>Tel:&nbsp;<?php echo $current_user['user_tel']; ?></p>
-		<p>Email:&nbsp;<?php echo $current_user['user_email']; ?></p>
-	<?php ?>
-</div>
 
 
 
@@ -40,7 +31,7 @@
 		}
 
 		.zebra_striping{
-			background-color: #fafafa;
+			background-color: #d4d4d4;
 		}
 		.reducedtext{
 			font-size: 0.9em;

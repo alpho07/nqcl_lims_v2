@@ -1530,7 +1530,10 @@ GROUP by status")->result();
         $name = $this -> input -> post("name");
         $sno = $this -> input -> post("serial_no");
         $model = $this -> input -> post("model");
+        $nqcl_code = $this->input->post("nqcl_code");
         $nqcl_no = "NQCL" . "-" . date('Y') ."-" . ($serial_id + 1);
+        $manufacturer = $this -> input -> post("manufacturer");
+        $service_agent = $this -> input -> post("service_agent");
         $date_a = $this -> input -> post("date_a");
         $date_c1 = $this -> input -> post("date_c1");
         $date_cn = $this -> input -> post("date_cn");
@@ -1544,12 +1547,17 @@ GROUP by status")->result();
             $equip -> serial_no = $sno;
             $equip -> model = $model;
             $equip -> nqcl_no = $nqcl_no;
+            $equip -> nqcl_code = $nqcl_code;
+            $equip -> manufacturer = $manufacturer;
+            $equip -> service_agent = $service_agent;
             $equip -> date_acquired = date('y-m-d',strtotime($date_a));
             $equip -> date_of_calibration = date('y-m-d',strtotime($date_c1));
             $equip -> date_of_nxtcalibration = date('y-m-d',strtotime($date_cn));
             $equip -> status = $status;
             $equip -> type = $type;
             $equip -> save();
+
+            $this->output->enable_profiler(TRUE);
 
 
     }

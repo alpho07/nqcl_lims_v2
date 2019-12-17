@@ -133,5 +133,30 @@
 			</tbody>
 			</table>
 	</table>
-	<?php $this -> load -> view("document_footer_v"); ?>
+	&nbsp;
+	<!--Prompt reader to see notes on second page-->
+	<p><i> Please see notes on second page.</i></p>
+
+	<!---->
+	<div class ="pdfFooter">
+		<?php $this -> load -> view("general_quotation_footer_v"); ?>
+	</div>
+
+
+	<!--Do a page break to send notes to page 2 of quotation-->
+	<div class="notesPageBreak">
+		<?php $this -> load -> view("document_footer_v"); ?>
+		<div class ="pdfFooter">
+			<?php $this -> load -> view("general_quotation_footer_v"); ?>
+		</div>
+	</div>
+
+	<!--Page Break CSS-->
+	<style type="text/css">
+		.notesPageBreak{
+			page-break-before: always;
+		}
+	</style>
+
+
 </html>

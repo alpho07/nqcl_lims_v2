@@ -1,8 +1,6 @@
 <div class="container">
-	
-	<div><legend><span class = "link_highlight" >Invoice Tracking &nbsp;|&nbsp;<?php echo $rid; ?>&nbsp;|&nbsp;</span></legend></div>
-	<div>
-		<table id ="invoice_tracking">
+	<div><legend><span class = "link_highlight" >Invoice Tracking &nbsp;|&nbsp;<?php echo $qt_no; ?></span></legend></div>
+		<table id ="invoice_tracking_tbl" style="width: 1216px" >
 			<caption>Cost per test breakdown table</caption>
 				<thead>
 					<tr>
@@ -13,12 +11,11 @@
 					</tr>
 				</tbody>
 		</table>
-	</div>
 </div>
 
 <script type="text/javascript">
 	//Init and define inventory tracking table
-	var inv_table = $('#invoice_tracking_table').DataTable({
+	var inv_table = $('#invoice_tracking_tbl').DataTable({
 		"order": [[ 0, "desc" ]],
 		"columnDefs":[{"targets":[0], "visible":false}],
 		"aoColumns":[
@@ -59,11 +56,11 @@
 		"rowCallback":function(row,data){	
 			$('td:eq(4)', row).css('background-color', 'lightgray');
 		},
+		"responsive":true,
 		"bJQueryUI":false,
 		"sAjaxDataProp":"",
-		"sAjaxSource":'<?php echo base_url()."quotation/getInvoiceTrackingAll/$qt_no/$rid"?>'
+		"sAjaxSource":'<?php echo base_url()."quotation/getInvoiceTrackingAll/$qt_no"?>'
 	});
-
 	</script>
 
 

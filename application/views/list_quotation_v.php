@@ -77,7 +77,11 @@
 			},
 			{"sTitle":"Quotation Date","mData":"Quotation_date"},
 			{"sTitle":"Entries No.","mData":"Quotations_final[].quotation_entries"},
-			{"sTitle":"Currency","mData":"Currency"},
+			{"sTitle":"Currency","mData":"Currency",
+
+				
+
+			},
 			{"sTitle":"Amount","mData":"Quotations_final[].amount",
 				"mRender": function ( data, type, row ) {
 					return accounting.formatMoney(data, { format: "%v" });
@@ -133,7 +137,7 @@
 			{"sTitle":"Actions","mData":"Quotation_no",
 				"mRender": function ( data, type, row ) {
 					if(row.Quotations_final[0].quotation_entries < 2){
-						return '<div class = "field is-grouped"><p class ="control"><a class = "add_entry button is-info is-small" data-id= '+data+'>Add Product</a></p>' + '<p class = "field is-grouped"><a class = "print button is-info is-small"  data-id= '+data+'>Print Pdf</a></p></div>';
+						return '<div class = "field is-grouped"><p class ="control"><a class = "add_entry button is-info is-small" data-id= '+data+'>Add Product</a></p>' + '<p class = "field is-grouped"><a class = "print button is-info is-small"  data-id= '+data+'>Print Pdf</a></p>&nbsp;&nbsp;<p class = "field is-grouped"><a class = "changelog button is-info is-small" data-currency='+row.Currency+' data-id= '+data+'>Show Change Log</a></p></div>';
 					}
 					else{
 						return '<a class = "add_entry button is-info is-small" data-id= '+data+'>Add Product</a>' + ' &nbsp; ' + '<a class = "print button is-info is-small"  data-id= '+data+'>Print</a>';
@@ -264,6 +268,34 @@
                 }
             })
         })
+
+
+	 //Show Invoice Change Log
+	 $('#list_quotation tbody').on("click", "a.changelog", function (e) {
+		 
+			//Get quotation no
+			quotation_no = $(this).attr("data-id");
+
+			//Get currency
+			currency = $(this).attr("data-currency");
+			
+			e.preventDefault();
+            var href = '<?php echo base_url() . "quotation/showInvoiceTrackingAll/" ?>'+quotation_no+"/"+currency;
+			
+			console.log(href);
+			
+            $.fancybox.open({
+                href: href,
+                type: 'iframe',
+                autoSize: false,
+                autoDimensions: false,
+                width: 1200,
+                'afterClose':function(){
+                 	qtable.ajax.reload();
+                }
+            })
+        })
+
 
 	
 	//Child Row Display

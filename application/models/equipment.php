@@ -6,6 +6,9 @@ class Equipment extends Doctrine_Record {
 		$this -> hasColumn('serial_no', 'varchar', 20);
 		$this -> hasColumn('nqcl_no', 'varchar', 20);
 		$this -> hasColumn('date_acquired', 'date');
+		$this -> hasColumn('nqcl_code', 'varchar', 50);
+		$this -> hasColumn('manufacturer', 'varchar', 50);
+		$this -> hasColumn('service_agent', 'varchar', 50);
 		$this -> hasColumn('date_of_calibration', 'date');
 		$this -> hasColumn('date_of_nxtcalibration', 'date');
 		$this -> hasColumn('status', 'varchar', 30);
@@ -53,7 +56,7 @@ class Equipment extends Doctrine_Record {
 	}
 	
 
-	public function getMax(){
+	public static function getMax(){
 		$query = Doctrine_Query::create() 
 		-> select("count('*')")
 		-> from("equipment");

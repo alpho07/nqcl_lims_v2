@@ -27,7 +27,20 @@
 			<td><label for = "model">Model</label></td>
 			<td><input name ="model" type = "text" class ="validate[required]" placeholder ="e.g B2 Model" /></td>
 		</tr>
+
+		<!--New fields added 2019-->
+		<tr>
+			<td><label for = "manufacturer">Manufacturer</label></td>
+			<td><input name ="manufacturer" type = "text" class ="validate[required]" placeholder ="e.g Pfizer" /></td>
+		</tr>
+		<tr>
+			<td><label for = "NQCL Code">NQCL Code</label></td>
+			<td><input name ="nqcl_code" type = "text" id = "nqcl_code" class ="validate[required]" placeholder ="e.g NQCL/2012/056" /></td>
+			<td><label for = "service_agent">Service Agent</label></td>
+			<td><input name ="service_agent" type = "text" id = "service_agent" class ="validate[required]" placeholder ="e.g Service Agent" /></td>
+		</tr>
 		
+		<!--End of New Fields-->
 		<tr>
 			<td><label for = "type">Type</label></td>
 			<td>

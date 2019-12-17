@@ -1760,16 +1760,11 @@ class Quotation extends MY_Controller {
 
 		public function showInvoiceTrackingAll(){
 
-			//Get unique id
-			$data['rid'] = $this -> uri -> segment(3);
-			
-			//Get tables
-			$data['table'] = $this -> uri -> segment(4);
-			$data['table2'] = $this -> uri -> segment(5);
-			$data['table3'] = $this -> uri -> segment(6);
+			//Get master quotation no
+			$data['qt_no'] = $this -> uri -> segment(3);
 
-			//Get client id
-			$data['client_id']  = $this -> uri -> segment(7);
+			//Get currency
+			$data['c'] = $this->uri->segment(4);
 
 			//Get list of eligible signatories
 			$data['signatories'] = User::getSignatories();
