@@ -8,7 +8,8 @@ class Quotations_components extends Doctrine_Record {
 		$this -> hasColumn('method_id', 'int', 11);
 		$this -> hasColumn('quotations_id', 'varchar', 30);
 		$this -> hasColumn('quotation_id', 'varchar', 30);
-		$this -> hasColumn('method_charge', 'int', 11);
+		$this -> hasColumn('method_charge_kes', 'int', 11);
+		$this -> hasColumn('method_charge_usd', 'int', 11);
 		$this -> hasColumn('test_charge', 'int', 11);
 		$this -> hasColumn('additional_charge', 'int', 11);
 		$this -> hasColumn('charge_system', 'int', 11);
@@ -95,7 +96,7 @@ class Quotations_components extends Doctrine_Record {
 	
 	public static function getComponentsTotal($reqid, $test_id){
 		$query = Doctrine_Query::create() 
-		-> select("SUM(qc.method_charge) as component_total") 
+		-> select("SUM(qc.method_charge_kes) as component_total_kes, SUM(qc.method_charge_usd) as component_total_usd") 
 		-> from("quotations_components qc")
 		-> andWhere("qc.quotations_id =?", $reqid)
 		-> andWhere("qc.test_id =?", $test_id);

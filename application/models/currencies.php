@@ -6,6 +6,7 @@ class Currencies extends Doctrine_Record {
 
 		$this -> hasColumn('name', 'varchar', 30);
 		$this -> hasColumn('abbrev', 'varchar', 10);
+		$this -> hasColumn('abbrev_small', 'varchar', 10);
 		$this -> hasColumn('symbol', 'varchar', 10);
 	
 	}

@@ -15,7 +15,8 @@ class Quotations extends Doctrine_Record {
 	$this->hasColumn('Quotation_no','varchar',35);
 	$this->hasColumn('Quotation_entries','int',11);
 	$this->hasColumn('Quotation_entries_done','int',11);
-	$this->hasColumn('Amount','int',11);
+	$this->hasColumn('Amount_kes','int',11);
+	$this->hasColumn('Amount_usd','int',11);
 	$this->hasColumn('Batch_id','int',11);
 	$this->hasColumn('Active_ingredients','varchar',35);
 	$this->hasColumn('Dosage_form','int', 11);

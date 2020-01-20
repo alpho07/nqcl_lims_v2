@@ -46,6 +46,28 @@ class MY_Controller extends CI_Controller {
 
     }
 
+    //get alternative currency
+    function getAltCurrency($currency_small){
+
+        //check current currency and set alt currency to other currency // working with USD and KES only
+        switch ($currency_small) {
+            case 'kes':
+                $currency_alt = 'usd';
+                break;
+            case 'usd':
+                $currency_alt = 'kes';
+                break;
+            default:
+                $currency_alt = 'usd';
+                break;
+        }
+
+        //return alternative currency
+        return $currency_alt;
+
+    }
+
+    //get followed by tests
     function getFollowedBy($tests_array){
         
         //TEMPHACK - Get followed by for Assay and Identification
@@ -129,6 +151,11 @@ class MY_Controller extends CI_Controller {
        
     }
 
+    //Get all Currencies
+    function getCurrencies(){
+        $currencies = Currencies::getAll();
+        return $currencies;
+    }
 
     function testSuggestions($term) {
 
@@ -144,6 +171,11 @@ class MY_Controller extends CI_Controller {
 
     function getMethodsForTest($testname, $currency){
         $methods = Tests::getMethodsByTestname($testname, $currency);
+        echo json_encode($methods);
+    }
+
+    function getMethodsForTestAll($testname){
+        $methods = Tests::getMethodsByTestnameGeneral($testname);
         echo json_encode($methods);
     }
 

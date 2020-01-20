@@ -8,7 +8,8 @@ class Q_request_details extends Doctrine_Record {
 		$this -> hasColumn('client_email', 'varchar', 30);
 		$this -> hasColumn('client_number', 'varchar', 35);
 		$this -> hasColumn('test_charge', 'int', 11);
-		$this -> hasColumn('method_charge', 'int', 11);
+		$this -> hasColumn('method_charge_kes', 'int', 11);
+		$this -> hasColumn('method_charge_usd', 'int', 11);
 		$this -> hasColumn('test_id', 'int', 11);
 		$this -> hasColumn('method_id', 'int', 11);
 		$this -> hasColumn('compendia_id', 'int', 11);
@@ -125,7 +126,7 @@ class Q_request_details extends Doctrine_Record {
 
 	public static function getTotal($rid){
 		$query = Doctrine_Query::create()
-		-> select('c.*, m.*, t.*, sum(c.method_charge)')
+		-> select('c.*, m.*, t.*, sum(c.method_charge_kes) as main_total_kes, sum(c.method_charge_usd) as main_total_usd')
 		-> from("q_request_details c")
 		-> where("c.quotation_id =?", $rid)
 		-> leftJoin("c.tests t")
@@ -158,7 +159,7 @@ class Q_request_details extends Doctrine_Record {
 
 	public static function getBatchTotal($rid){
 		$query = Doctrine_Query::create()
-		-> select('c.*, m.*, t.*, sum(c.method_charge)')
+		-> select('c.*, m.*, t.*, sum(c.method_charge_kes) as batch_total_kes, sum(c.method_charge_usd) as batch_total_usd')
 		-> from("q_request_details c")
 		-> where("c.quotations_id =?", $rid)
 		-> leftJoin("c.tests t")

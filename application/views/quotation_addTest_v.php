@@ -42,10 +42,12 @@ $(function(){
 		test_name_raw = $('#addTest_h').val();
 		test_name_concat = test_name_raw.replace(/ /g,"_");
 		radio_name = component_name + test_name_concat;
+		currency = $(this).attr('data-cur');
 
 		//Set this 
 		$(this).attr('name', radio_name)
-		$(this).next().attr('name', radio_name+'_charge');
+		$('#ckes').attr('name', radio_name+'_charge_kes');
+		$('#cusd').attr('name', radio_name+'_charge_usd');
 	})
 
 
@@ -83,17 +85,12 @@ $(function(){
 					var radios_html = ['<li><input class="radios" data-inp = "new" name="methods_" type="radio" value="42"> None<input class="charges" data-inp="new" name="" type="hidden" value=0> </li>'];
 
 					$.each(value.Test_methods, function(i, v){
-						if(currency == 'KES'){
-						radios_html.push('<li><input class="radios" data-inp = "new" name="methods_" type ="radio" value="'+v.id+'"> '+v.name+'<input class="charges" data-inp = "new"  name ="" type="hidden" value="'+v.charge_kes+'"></li>')
-						}
-						else{
-							radios_html.push('<li><input class="radios" data-inp = "new" name="methods_" type ="radio" value="'+v.id+'"> '+v.name+'<input class="charges" data-inp = "new"  name ="" type="hidden" value="'+v.charge_usd+'"></li>')
-						}
+						radios_html.push('<li><input class="radios" data-inp = "new" name="methods_" type ="radio" value="'+v.id+'"> '+v.name+'<input class="charges" data-inp = "new"  id = "ckes" name ="" data-cur="kes" type="hidden" value="'+v.charge_kes+'"><input class="charges" data-inp = "new"  name =""  data-cur="usd" id="cusd" type="hidden" value="'+v.charge_usd+'"></li>')
 					})
 
 					//Console log
 					console.log(radios_html)
-					console.log(mc_status)
+					//console.log(mc_status)
 
 					//Populate unordered list with generated radio inputs
 					$('.multic').html(radios_html);

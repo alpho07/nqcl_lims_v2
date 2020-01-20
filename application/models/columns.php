@@ -35,7 +35,7 @@ class Columns extends Doctrine_Record {
 
 	}//end setUp
 
-	public function getAll() {
+	public static function getAll() {
 		$query = Doctrine_Query::create() -> 
 		select("c.*, ci.id, ci.issue_date, u.fname, u.lname, cs.*") ->
 		from("columns cs") ->

@@ -6,8 +6,10 @@ class Quotations_final extends Doctrine_Record {
 		$this->hasColumn('quotation_no','varchar', 40);
 		$this->hasColumn('client_id','int', 11);	
 		$this->hasColumn('date_printed','date');
-		$this->hasColumn('amount','int',11);
-		$this->hasColumn('payable_amount','int',11);
+		$this->hasColumn('amount_kes','int',11);
+		$this->hasColumn('payable_amount_kes','int',11);
+		$this->hasColumn('amount_usd','int',11);
+		$this->hasColumn('payable_amount_usd','int',11);
 		$this->hasColumn('discount','int', 11);
 		$this->hasColumn('reporting_fee','int', 11);
 		$this->hasColumn('admin_fee','int', 11);

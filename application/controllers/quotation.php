@@ -949,6 +949,10 @@ class Quotation extends MY_Controller {
 		//If new quotation, variables global to the consolidated quotation
 		$currency = $this -> input -> post("currency");
 		$currency_small = strtolower($currency);
+		$currency_alt = $this->getAltCurrency($currency_small);
+
+		//All Currencies
+		$currencies = $this->getCurrencies();
 
 		$email = $this -> input -> post("client_email");
 		$client_number = $this -> input -> post("client_id");
@@ -1033,69 +1037,79 @@ class Quotation extends MY_Controller {
 					$qc->test_id = $test[$i];
 						if($test[$i] == '1'){					
 							if($followedBy){
-								$qc->method_id = $followedBy['followed_by_assay'][0]['id'];
-								$qc->method_charge = $followedBy['followed_by_assay'][0]['charge_'.$currency_small];
-							}
-							else{
-								$qc->method_id = $method_details[0]['id'];
-								$qc->method_charge = $method_details[0]['charge_'.$currency_small];
-							}
-						}else if($test[$i] == '5'){
-							if($followedBy){
-								$qc->method_id = $followedBy['none_method'][0]['id'];
-								$qc->method_charge = 0;
+									$qc->method_id = $followedBy['followed_by_assay'][0]['id'];
+									$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
+									$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
 								}
 							else{
 								$qc->method_id = $method_details[0]['id'];
-								$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+								$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
+								$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
+							}
+						}
+						else if($test[$i] == '5'){
+							if($followedBy){
+								$qc->method_id = $followedBy['none_method'][0]['id'];
+								$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
+								$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
+								}
+							else{
+								$qc->method_id = $method_details[0]['id'];
+								$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
+								$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
 								}
 							}
 						else{
 							$qc->method_id = $method_details[0]['id'];
-							$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+							$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
+							$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
 						}				
 					$qc->save();
 
 					//Update test total with default method charges
 					$tmc = Quotations_components::getComponentsTotal($quotation_id.'-'.$b, $test[$i]);
-					$total_methodCharge = $tmc[0]['component_total'];
-						//var_dump($total_methodCharge);
+					$total_methodCharge_kes = $tmc[0]['component_total_kes'];
+					$total_methodCharge_usd = $tmc[0]['component_total_usd'];
+					
+
 
 					//Update Q Request Details with component total
 					$qr_where_array =  array('quotations_id' =>$quotation_id.'-'.$b, 'test_id' => $test[$i]);
-					$qr_update_array =  array('method_charge' => $total_methodCharge);
-
 					$this -> db -> where($qr_where_array);
-					$this -> db -> update('q_request_details', $qr_update_array);
-
+					$this -> db -> update('q_request_details', array('method_charge_kes' => $total_methodCharge_kes, 'method_charge_usd' => $total_methodCharge_usd,));
+					
 				}
 
 
 										//Get total for this batch only.
 										$b_total = Q_request_details::getBatchTotal($quotation_id.'-'.$b);
-										$batch_total = $b_total[0]['sum'];
+										$batch_total_kes = $b_total[0]['batch_total_kes'];
+										$batch_total_usd = $b_total[0]['batch_total_usd'];
 										//var_dump($b_total);
 						
 										//Update quotations final
 										$qb_where_array = array('quotations_id' => $quotation_id.'-'.$b);
-										$qb_update_array = array('amount'=>$batch_total);
+										$qb_update_array = array('amount_kes'=>$batch_total_kes, 'amount_usd' => $batch_total_usd);
 										$this -> db -> where($qb_where_array);
 										$this -> db -> update('quotations', $qb_update_array);
 				
 				
 										//Get new total
 										$main_total = Q_request_details::getTotal($quotation_id);
-										$total = $main_total[0]['sum'];
+										$total_kes = $main_total[0]['main_total_kes'];
+										$total_usd = $main_total[0]['main_total_usd'];
 										//var_dump($main_total);		
 				
 										//$quotation_extras = Quotations_final::getQuotationExtras($quotation_id);
 										//var_dump($quotation_no); 
-										$payable_amount = $total;
+										$payable_amount_kes = $total_kes;
+										$payable_amount_usd = $total_usd;
 										//$payable_amount = $total + $quotation_extras[0]['admin_fee'] + ($quotation_extras[0]['reporting_fee']/100*$total) - ($quotation_extras[0]['discount']/100*$total);
 				
 										//Update quotations final
 										$qf_where_array = array('quotation_no' => $quotation_no);
-										$qf_update_array = array('amount'=>$total, 'payable_amount'=>$payable_amount);
+										$qf_update_array = array('amount_kes'=>$total_kes, 'payable_amount_kes'=>$payable_amount_kes, 'amount_usd' => $total_usd, 'payable_amount_usd' => $payable_amount_usd);
+
 										$this -> db -> where($qf_where_array);
 										$this -> db -> update('quotations_final', $qf_update_array);
 				
@@ -1106,23 +1120,28 @@ class Quotation extends MY_Controller {
 										$this -> db -> where($rq_where_array);
 										$this -> db -> update('request', $rq_update_array);
 										*/
-
+ 
 
 
 			
 			//Set notes
 			$notes = "Initial quotation generated.";
 
+			$total = ${'total_'.$currency_small};
+			$payable_amount = ${'payable_amount_'.$currency_small};
+			$batch_total = ${'batch_total_'.$currency_small};
+	
+
 			//Add Invoice Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotation_id.'-'.$b);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount.'_'.$currency_small, $notes, $batch_total.'_'.$currency_small, $quotation_id.'-'.$b);
 
 			
 			}
 
 			//Get new total
 			$main_total = Q_request_details::getTotal($quotation_id);
-			$total = $main_total[0]['sum'];
-
+			$total_kes = $main_total[0]['main_total_kes'];
+			$total_usd = $main_total[0]['main_total_usd'];	
 
 		if($this->checkIfThisQuotationAlreadyPrinted($quotation_no) == false){
 			//Save to main quotation table
@@ -1131,8 +1150,10 @@ class Quotation extends MY_Controller {
 			$q_f -> quotation_no = $quotation_no;
 			$q_f -> client_id = $client_no;
 			$q_f -> currency = $currency;
-			$q_f -> amount = $total;
-			$q_f -> payable_amount = $total;
+			$q_f -> amount_kes = $total_kes;
+			$q_f -> amount_usd = $total_usd;
+			$q_f -> payable_amount_kes = $payable_amount_kes;
+			$q_f -> payable_amount_usd = $payable_amount_usd;
 			$q_f -> save();
 		}
 
@@ -1225,6 +1246,9 @@ class Quotation extends MY_Controller {
 
 			//Make Currency Small 
 			$currency_small = strtolower($cur);
+
+			//Determine active currency
+			$currency_alt = $this->getAltCurrency($currency_small);
 
 			//Get quotation number
 			$q_no = $this -> input -> post("quotation_no");
@@ -1321,6 +1345,7 @@ class Quotation extends MY_Controller {
 							$qc->method_id = $method_details[0]['id'];
 						}
 						$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+						$qc->method_charge_alt = $method_details[0]['charge_'.$currency_alt];
 						$qc->save();
 
 						//Update test total with default method charges
@@ -1593,7 +1618,8 @@ class Quotation extends MY_Controller {
 			$test_id = $test[0]['id'];
 
 			//Initialize array to hold method charges
-			$method_charges =  array();
+			$method_charges_kes =  array();
+			$method_charges_usd = array();
 
 			//Get components
 			$components = Quotations_components::getQuotations_components($quotations_id, 'quotations_id');
@@ -1613,7 +1639,11 @@ class Quotation extends MY_Controller {
 					$method = $this->input->post($component_name.$test_name);
 					
 					//Get Method Charge
-					$method_charge =  $this->input->post($component_name.$test_name."_charge");
+					$method_charge_kes =  $this->input->post($component_name.$test_name."_charge_kes");
+
+					//Get Alt Method Charge
+					$method_charge_usd = $this->input->post($component_name.$test_name."_charge_usd");				
+
 
 					//var_dump($method_charge);
 
@@ -1626,11 +1656,13 @@ class Quotation extends MY_Controller {
 						$qco->quotations_id = $batch['Quotations_id'];
 						$qco->test_id = $test_id;
 						$qco->method_id = $method;
-						$qco->method_charge = $method_charge;
+						$qco->method_charge_kes = $method_charge_kes;
+						$qco->method_charge_usd = $method_charge_usd;
 						$qco->save();
 
 						//Put charges into array
-						array_push($method_charges, $method_charge);
+						array_push($method_charges_kes, $method_charge_kes);
+						array_push($method_charges_usd, $method_charge_usd);
 					}
 
 				}
@@ -1642,7 +1674,8 @@ class Quotation extends MY_Controller {
 				$qr->client_number = $batch['Client_number'];
 				$qr->client_email = $batch['client_email'];
 				$qr->test_id = $test_id;
-				$qr->method_charge = array_sum($method_charges);
+				$qr->method_charge_kes = array_sum($method_charges_kes);
+				$qr->method_charge_usd = array_sum($method_charges_usd);
 				$qr->save();
 
 			}
@@ -1814,7 +1847,7 @@ class Quotation extends MY_Controller {
 			$currency = $this -> uri -> segment(4);
 
 			//Get methods
-			$this-> getMethodsForTest($testname, $currency);
+			$this-> getMethodsForTestAll($testname);
 			
 		}
 

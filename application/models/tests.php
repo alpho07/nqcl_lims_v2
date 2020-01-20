@@ -70,6 +70,18 @@ class Tests extends Doctrine_Record {
 		return $methodData;	
 	}
 
+
+	public static function getMethodsByTestnameGeneral($testname){
+		$query = Doctrine_Query::create() 
+		-> select("t.id, t.mc_status, tm.id, tm.name, tm.charge_kes, tm.charge_usd")
+		-> from("tests t")
+		-> leftJoin("t.Test_methods tm")
+		-> where("t.name = ?", $testname);
+		$methodData = $query -> execute(array(), DOCTRINE::HYDRATE_ARRAY);
+		return $methodData;	
+	}
+
+
 	public static function getAll() {
 		$query = Doctrine_Query::create() -> select("*") -> from("tests");
 		$testData = $query -> execute();
