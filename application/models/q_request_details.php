@@ -183,7 +183,7 @@ class Q_request_details extends Doctrine_Record {
 
 	public static function getTestMethodCharge($quotations_id, $test){
 		$query = Doctrine_Query::create()
-		-> select('method_charge')
+		-> select('method_charge_kes, method_charge_usd')
 		-> from("q_request_details c")
 		-> where("c.quotations_id =?", $quotations_id)
 		-> andWhere("c.test_id=?", $test);

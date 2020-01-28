@@ -162,6 +162,9 @@ $quotation_status = $approvalStatus;
 
 $(document).ready(function(){
 
+	//Send currency to Js Variable
+	var currency = '<?php echo $c; ?>';
+
 	var status = '<?php echo $approvalStatus; ?>';
 	console.log(status);
 	if(status>=2){
@@ -263,7 +266,12 @@ $(document).ready(function(){
 			},
 			{"sTitle":"Test Total (<?php echo $c; ?>)","mData":null,
 				"mRender":function(data, type, row){
-					return accounting.formatMoney(parseInt(row.method_charge), { format: "%v"}); 
+					if(currency == 'KES'){
+						return accounting.formatMoney(parseInt(row.method_charge_kes), { format: "%v"}); 
+					}
+					else{
+						return accounting.formatMoney(parseInt(row.method_charge_usd), { format: "%v"}); 
+					}
 				},
 				"fnCreatedCell":function(nTd, sData, oData, iRow, iCol){
 					$(nTd).css({"font-weight":"bold"});

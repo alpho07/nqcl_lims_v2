@@ -77,24 +77,33 @@
 			},
 			{"sTitle":"Quotation Date","mData":"Quotation_date"},
 			{"sTitle":"Entries No.","mData":"Quotations_final[].quotation_entries"},
-			{"sTitle":"Currency","mData":"Currency",
-
-				
-
-			},
-			{"sTitle":"Amount","mData":"Quotations_final[].amount",
+			{"sTitle":"Currency","mData":"Currency"},
+			{"sTitle":"Amount","mData":null,
 				"mRender": function ( data, type, row ) {
-					return accounting.formatMoney(data, { format: "%v" });
+					if(row.Currency == 'KES'){
+						return accounting.formatMoney(row.Quotations_final[0].amount_kes, { format: "%v" });
+					}
+					else{
+						return accounting.formatMoney(row.Quotations_final[0].amount_usd, { format: "%v" });
+					}
+					
 				},
 				"fnCreatedCell":function(nTd, sData, oData, iRow, iCol){
 				 	$(nTd).css({"background-color":"#FFFFF0", "color":"black"});
 				}	
 			},
-			{"sTitle":"Reporting Fee (%)","mData":"Quotations_final[].reporting_fee",
+			{"sTitle":"Reporting Fee (%)","mData": null,
 				"mRender": function ( data, type, row ) {
 
-					percentage = data + "% (";
-					amount = data * row.Quotations_final[0].amount / 100;
+
+					if(row.Currency == 'KES'){
+						percentage = row.Quotations_final[0].reporting_fee_kes + "% (";
+						amount = row.Quotations_final[0].reporting_fee_kes * row.Quotations_final[0].amount_kes / 100;
+					}
+					else{
+						percentage = row.Quotations_final[0].reporting_fee_usd + "% (";
+						amount = row.Quotations_final[0].reporting_fee_usd * row.Quotations_final[0].amount_usd / 100;
+					}
 
 					return "+ "+ percentage + accounting.formatMoney(amount, { format: "%v" }) + ")";
 				},
@@ -102,9 +111,14 @@
 				 	$(nTd).css({"background-color":"#FFFFF0", "color":"black"});
 				}		
 			},
-			{"sTitle":"Admin Fee","mData":"Quotations_final[].admin_fee",
+			{"sTitle":"Admin Fee","mData":null,
 				"mRender": function ( data, type, row ) {
-					return accounting.formatMoney(data, { format: "%v" });
+					if(row.Currency == 'KES'){
+						return accounting.formatMoney(row.Quotations_final[0].admin_fee_kes, { format: "%v" });
+					}
+					else{
+						return accounting.formatMoney(row.Quotations_final[0].admin_fee_usd, { format: "%v" });
+					}
 				},
 				"fnCreatedCell":function(nTd, sData, oData, iRow, iCol){
 				 	$(nTd).css({"background-color":"#FFFFF0", "color":"black"});
@@ -113,7 +127,13 @@
 			{"sTitle":"Discount(%)","mData":"Quotations_final[].discount",
 				"mRender": function ( data, type, row ) {
 					percentage = data + "% (";
-					amount = data * row.Quotations_final[0].amount / 100;
+
+					if(row.Currency == 'KES'){
+						amount = data * row.Quotations_final[0].amount_kes / 100;
+					}
+					else{
+						amount = data * row.Quotations_final[0].amount_usd / 100;
+					}
 
 					return "- "+ percentage + accounting.formatMoney(amount, { format: "%v" }) + ")";
 				},
@@ -123,7 +143,12 @@
 			},
 			{"sTitle":"Payable Amount","mData":"Quotations_final[].payable_amount",
 				"mRender": function ( data, type, row ) {
-					return accounting.formatMoney(data, { format: "%v" });
+					if(row.Currency == 'KES'){
+						return accounting.formatMoney(row.Quotations_final[0].payable_amount_kes, { format: "%v" });
+					}
+					else{
+						return accounting.formatMoney(row.Quotations_final[0].payable_amount_usd, { format: "%v" });
+					}
 				},
 				"fnCreatedCell":function(nTd, sData, oData, iRow, iCol){
 				 	$(nTd).css({"background-color":"#FFFBB0", "color":"black"});

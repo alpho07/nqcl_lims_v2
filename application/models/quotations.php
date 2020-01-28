@@ -335,7 +335,7 @@ public static function getSample($reqid) {
 	
 	public static function getAllHydrated() {
 		$query = Doctrine_Query::create()
-		-> select("q.id, q.client_number as client_id, q.client_email, q.client_name, q.quotation_date, q.quotation_no, q.quotation_entries, q.amount, q.reporting_fee, q.admin_fee, q.discount, q.currency,q.quotation_status") 
+		-> select("q.id, q.client_number as client_id, q.client_email, q.client_name, q.quotation_date, q.quotation_no, q.quotation_entries, q.amount_kes, q.amount_usd, q.reporting_fee_kes, q.reporting_fee_usd, q.admin_fee_kes, q.admin_fee_usd, q.discount, q.currency,q.quotation_status") 
 		-> from("quotations q")
 		-> groupBy("q.quotation_no")
 		-> orderBy("id DESC");
@@ -346,7 +346,7 @@ public static function getSample($reqid) {
 
 	public static function getAllConsolidated() {
 		$query = Doctrine_Query::create()
-		-> select("q.id, q.client_number as client_id, q.quotation_date, q.client_email, q.client_name, q.quotation_no, q.currency, qf.amount, qf.reporting_fee, qf.admin_fee, qf.discount, qf.payable_amount, qf.quotation_entries, qf.print_status, qf.source_status, qs.status") 
+		-> select("q.id, q.client_number as client_id, q.quotation_date, q.client_email, q.client_name, q.quotation_no, q.currency, qf.amount_kes, qf.amount_usd, qf.reporting_fee_kes, qf.reporting_fee_usd, qf.admin_fee_kes, qf.admin_fee_usd, qf.discount, qf.payable_amount_kes, qf.payable_amount_usd, qf.quotation_entries, qf.print_status, qf.source_status, qs.status") 
 		-> from("quotations q")
 		-> leftJoin("q.Quotations_final qf")
 		-> where("qf.source_status = 'system' OR qf.source_status = 'client'")
@@ -359,7 +359,7 @@ public static function getSample($reqid) {
 
 	public static function getChildEntries($quotation_no) {
 		$query = Doctrine_Query::create()
-		-> select("q.id, q.quotations_id, q.quotation_id, q.sample_name,q.no_of_batches,q.quotation_date, q.batch_id, q.quotation_no, q.amount, q.amount*q.no_of_batches as product_total, q.currency,q.quotation_status") 
+		-> select("q.id, q.quotations_id, q.quotation_id, q.sample_name,q.no_of_batches,q.quotation_date, q.batch_id, q.quotation_no, q.amount_kes, q.amount_usd, q.amount_kes*q.no_of_batches as product_total_kes, q.amount_usd*q.no_of_batches as product_total_usd, q.currency,q.quotation_status") 
 		-> from("quotations q")
 		-> leftJoin("q.Request_payment rp")
 		-> where("q.quotation_no = ?", $quotation_no)
@@ -371,7 +371,7 @@ public static function getSample($reqid) {
 
 	public static function getChildEntriesBatches($quotation_id){
 		$query = Doctrine_Query::create()
-		-> select("q.id, q.quotations_id, q.sample_name, q.quotation_date, q.batch_id,q.amount, q.currency,q.quotation_status, rp.request_id") 
+		-> select("q.id, q.quotations_id, q.sample_name, q.quotation_date, q.batch_id,q.amount_kes, q.amount_usd, q.currency,q.quotation_status, rp.request_id") 
 		-> from("quotations q")
 		-> leftJoin("q.Request_payment rp")
 		-> where("q.quotation_id = ?", $quotation_id)
@@ -402,7 +402,7 @@ public static function getSample($reqid) {
 
 	public static function getInvoices() {
 		$query = Doctrine_Query::create()
-		-> select("q.id, q.quotations_id, q.sample_name,q.no_of_batches,q.quotation_date, q.batch_id, q.quotation_no, q.amount, rp.request_id as ndq_ref, q.currency,q.quotation_status") 
+		-> select("q.id, q.quotations_id, q.sample_name,q.no_of_batches,q.quotation_date, q.batch_id, q.quotation_no, q.amount_kes, q.amount_usd, rp.request_id as ndq_ref, q.currency,q.quotation_status") 
 		-> from("quotations q")
 		-> leftJoin("q.Request_payment rp")
 		-> orderBy("q.id DESC");

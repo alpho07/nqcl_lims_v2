@@ -11,6 +11,9 @@
 
 <script type="text/javascript">
 
+	//get currency
+	currency = "<?php echo $currency ?>";
+
 	//Datatable Definition
 	$(function(){
 		
@@ -26,18 +29,26 @@
 				"className":"viewQuotationEntry"
 			},
 			{"sTitle":"Product","mData":"Sample_name"},
-			{"sTitle":"Amount per Batch (<?php echo $currency; ?>)","mData":"Amount",
+			{"sTitle":"Amount per Batch (<?php echo $currency; ?>)","mData":null,
 				"mRender": function (data, type, row) {
-                    return accounting.formatMoney(data, { format: "%v" }); 
+					if(row.Currency == 'KES'){
+						return accounting.formatMoney(row.Amount_kes, { format: "%v" }); 
+					}else{
+						return accounting.formatMoney(row.Amount_usd, { format: "%v" }); 
+					}
                 },
                 "fnCreatedCell":function(nTd, sData, oData, iRow, iCol){
 				 	$(nTd).css({"background-color":"#FFFFF0", "color":"black"});
 				}
 			},
 			{"sTitle":"Batches","mData":"No_of_batches"},
-			{"sTitle":"Amount per Product (<?php echo $currency; ?>)","mData":"product_total",
+			{"sTitle":"Amount per Product (<?php echo $currency; ?>)","mData":null,
 				"mRender": function (data, type, row) {
-                    return accounting.formatMoney(data, { format: "%v" }); 
+                    if(row.Currency == 'KES'){
+						return accounting.formatMoney(row.product_total_kes, { format: "%v" }); 
+					}else{
+						return accounting.formatMoney(row.product_total_usd, { format: "%v" }); 
+					}
                 },
                 "fnCreatedCell":function(nTd, sData, oData, iRow, iCol){
 				 	$(nTd).css({"background-color":"#FFFFF0", "color":"black"});

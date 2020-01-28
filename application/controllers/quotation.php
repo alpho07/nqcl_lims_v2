@@ -1042,27 +1042,27 @@ class Quotation extends MY_Controller {
 									$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
 								}
 							else{
-								$qc->method_id = $method_details[0]['id'];
-								$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
-								$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
+									$qc->method_id = $method_details[0]['id'];
+									$qc->method_charge_kes = $method_details[0]['charge_kes'];
+									$qc->method_charge_usd = $method_details[0]['charge_usd'];
 							}
 						}
 						else if($test[$i] == '5'){
 							if($followedBy){
-								$qc->method_id = $followedBy['none_method'][0]['id'];
-								$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
-								$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
+									$qc->method_id = $followedBy['none_method'][0]['id'];
+									$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
+									$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
 								}
 							else{
-								$qc->method_id = $method_details[0]['id'];
-								$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
-								$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
+									$qc->method_id = $method_details[0]['id'];
+									$qc->method_charge_kes = $method_details[0]['charge_kes'];
+									$qc->method_charge_usd = $method_details[0]['charge_usd'];
 								}
 							}
 						else{
-							$qc->method_id = $method_details[0]['id'];
-							$qc->method_charge_kes = $followedBy['followed_by_assay'][0]['charge_kes'];
-							$qc->method_charge_usd = $followedBy['followed_by_assay'][0]['charge_usd'];
+								$qc->method_id = $method_details[0]['id'];
+								$qc->method_charge_kes = $method_details[0]['charge_kes'];
+								$qc->method_charge_usd = $method_details[0]['charge_usd'];
 						}				
 					$qc->save();
 
@@ -1071,8 +1071,6 @@ class Quotation extends MY_Controller {
 					$total_methodCharge_kes = $tmc[0]['component_total_kes'];
 					$total_methodCharge_usd = $tmc[0]['component_total_usd'];
 					
-
-
 					//Update Q Request Details with component total
 					$qr_where_array =  array('quotations_id' =>$quotation_id.'-'.$b, 'test_id' => $test[$i]);
 					$this -> db -> where($qr_where_array);
@@ -1514,7 +1512,9 @@ class Quotation extends MY_Controller {
 
 						//Get current test charge
 						$current_test_charge = Q_request_details::getTestMethodCharge($quotation_id.'-'.$i,$test);
-						$test_charge = $current_test_charge[0]['method_charge'];
+						$test_charge_kes = $current_test_charge[0]['method_charge_kes'];
+						$test_charge_usd = $current_test_charge[0]['method_charge_usd'];
+						
 						var_dump($current_test_charge);
 
 
@@ -1535,15 +1535,17 @@ class Quotation extends MY_Controller {
 						$qc->quotation_id = $quotation_id;
 						$qc->test_id = $test;
 						$qc->method_id = $method_details[0]['id'];
-						$qc->method_charge = $method_details[0]['charge_'.$currency_small];
+						$qc->method_charge_kes = $method_details[0]['charge_kes'];
+						$qc->method_charge_usd = $method_details[0]['charge_usd'];
 						$qc->save();
 
 						//Update quotation request details
-						$test_total = $method_details[0]['charge_'.$currency_small] + $test_charge;
+						$test_total_kes = $method_details[0]['charge_kes'] + $test_charge_kes;
+						$test_total_usd = $method_details[0]['charge_usd'] + $test_charge_usd;
 
 
 						$qr_where_array = array('quotations_id' => $quotation_id.'-'.$i,'test_id'=>$test);
-						$qr_update_array = array('method_charge'=>$test_total);
+						$qr_update_array = array('method_charge_kes'=>$test_total_kes, 'method_charge_usd'=>$test_total_usd);
 						$this -> db -> where($qr_where_array);
 						$this -> db -> update('q_request_details', $qr_update_array);
 					}
