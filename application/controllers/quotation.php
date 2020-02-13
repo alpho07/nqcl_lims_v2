@@ -338,6 +338,10 @@ class Quotation extends MY_Controller {
  			$qid = $quotations_id;
  		}
 
+
+ 		//Get currency
+ 		$currency_small = $this->getCurrentCurrency($quotations_id);
+
  		//Check what batch status is returned, returns correct batch status
  		//var_dump($batch_status);
 
@@ -354,11 +358,12 @@ class Quotation extends MY_Controller {
 
  		//Get Method Charge
  		$method_details = Test_methods::getMethodDetails($method);
- 		$method_charge = $method_details[0]['charge_'.strtolower($currency)];
+ 		$method_charge_kes = $method_details[0]['charge_kes'];
+ 		$method_charge_usd = $method_details[0]['charge_usd'];
 
  		//Update Quotation Components
  		$qc_where_array = array($ref => $qid, 'test_id'=>$test_id, 'component'=>$component_name);
- 		$qc_update_array = array('method_id'=>$method, 'method_charge'=> $method_charge);
+ 		$qc_update_array = array('method_id'=>$method, 'method_charge_kes'=> $method_charge_kes, 'method_charge_usd'=> $method_charge_usd);
  		$this -> db -> where($qc_where_array);
 		$this -> db -> update('quotations_components', $qc_update_array);
 		$this->output->enable_profiler(true);
@@ -368,12 +373,13 @@ class Quotation extends MY_Controller {
 		$this->db->trans_start();	
 		//Get new component total
 		$tmc = Quotations_components::getComponentsTotalAlt($ref,$quotations_id,$test_id);
-		$total_methodCharge = $tmc[0]['component_total'];
+		$total_methodCharge_kes = $tmc[0]['component_total_kes'];
+		$total_methodCharge_usd = $tmc[0]['component_total_usd'];
 		//var_dump($total_methodCharge);
 
 		//Update Q Request Details with component total
 		$qr_where_array =  array($ref => $qid, 'test_id' => $test_id);
-		$qr_update_array =  array('method_charge' => $total_methodCharge);
+		$qr_update_array =  array('method_charge_kes' => $total_methodCharge_kes, 'method_charge_usd' => $total_methodCharge_usd);
 
 		$this -> db -> where($qr_where_array);
 		$this -> db -> update('q_request_details', $qr_update_array);
@@ -390,35 +396,42 @@ class Quotation extends MY_Controller {
 
 		//Get total for this batch only.
 		$b_total = Q_request_details::getBatchTotal($quotations_id);
-		$batch_total = $b_total[0]['sum'];
+		$batch_total_kes = $b_total[0]['batch_total_kes'];
+		$batch_total_usd = $b_total[0]['batch_total_usd'];
 		
-				//Update quotations final
+		//Update quotations final
 		$qb_where_array = array($ref => $qid);
-		$qb_update_array = array('amount'=>$batch_total);
+		$qb_update_array = array('amount_kes'=>$batch_total_kes,'amount_usd'=>$batch_total_usd);
 		$this -> db -> where($qb_where_array);
 		$this -> db -> update('quotations', $qb_update_array);
 
 
 		//Get new total
 		$main_total = Q_request_details::getTotal($quotation_id);
-		$total = $main_total[0]['sum'];
+		$total_kes = $main_total[0]['main_total_kes'];
+		$total_usd = $main_total[0]['main_total_usd'];
 		//var_dump($main_total);		
 
 		$quotation_extras = Quotations_final::getQuotationExtras($quotation_no); 
-		$payable_amount = $total + $quotation_extras[0]['admin_fee'] + ($quotation_extras[0]['reporting_fee']/100*$total) - ($quotation_extras[0]['discount']/100*$total);
 
+		//Get payable amount in KES
+		$payable_amount_kes = $total_kes + $quotation_extras[0]['admin_fee_kes'] + ($quotation_extras[0]['reporting_fee_kes']/100*$total_kes) - ($quotation_extras[0]['discount']/100*$total_kes);
+
+		//Get payable amount in USD
+		$payable_amount_usd = $total_usd + $quotation_extras[0]['admin_fee_usd'] + ($quotation_extras[0]['reporting_fee_usd']/100*$total_usd) - ($quotation_extras[0]['discount']/100*$total_usd);
 
 		//Update quotations final
 		$qf_where_array = array('quotation_no' => $quotation_no);
-		$qf_update_array = array('amount'=>$total, 'payable_amount'=>$payable_amount);
+		$qf_update_array = array('amount_kes'=>$total_kes, 'payable_amount_kes'=>$payable_amount_kes, 'amount_usd'=>$total_usd, 'payable_amount_usd'=>$payable_amount_usd);
 		$this -> db -> where($qf_where_array);
 		$this -> db -> update('quotations_final', $qf_update_array);
 
 		//Set notes
 		$notes = "Edited ".$component_name." ".$old_method_details[0]["Tests"]['Name']." method from ".$old_method_details[0]['name']." to ".$method_details[0]['name'];
 
+
 		//Add invoice tracking
-		$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotations_id);
+		$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, ${'total_'.$currency_small}, ${'payable_amount_'.$currency_small}, $notes, ${'batch_total_'.$currency_small}, $quotations_id);
 
 
  	}

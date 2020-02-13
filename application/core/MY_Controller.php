@@ -67,6 +67,19 @@ class MY_Controller extends CI_Controller {
 
     }
 
+    //get current currency
+    function getCurrentCurrency($id){
+
+        //get currency from quotations table
+        $currency = Quotations::getCurrency($id);
+        var_dump($currency);
+
+        $current_currency = $currency[0]['Currency'];
+
+        //return current currency
+        return strtolower($current_currency);
+    }
+
     //get followed by tests
     function getFollowedBy($tests_array){
         

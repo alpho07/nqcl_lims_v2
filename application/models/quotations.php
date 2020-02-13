@@ -76,6 +76,15 @@ class Quotations extends Doctrine_Record {
 	}
 
 
+	public static function getCurrentCurrency(){
+		$query = Doctrine_Query::create()
+		-> select('max(id)')
+		-> from("quotations");
+		$lastreqid = $query -> execute() -> toArray();
+		return $lastreqid;
+	}
+
+
 
 	public static function getDetailsForQuotation($qid){
 		$query = Doctrine_Query::create()

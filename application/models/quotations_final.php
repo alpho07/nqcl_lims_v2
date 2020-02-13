@@ -71,7 +71,7 @@ class Quotations_final extends Doctrine_Record {
 
 	public static function getQuotationExtras($q){
 		$query = Doctrine_Query::create()
-		-> select("qf.discount, qf.reporting_fee, qf.admin_fee")
+		-> select("qf.discount, qf.reporting_fee_kes, qf.admin_fee_kes, qf.reporting_fee_usd, qf.admin_fee_usd")
 		-> from("quotations_final qf")
 		-> where("qf.quotation_no =?", $q);
 		$qf_data = $query-> execute(array(), Doctrine::HYDRATE_ARRAY);

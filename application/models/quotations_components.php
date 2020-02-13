@@ -106,7 +106,7 @@ class Quotations_components extends Doctrine_Record {
 
 	public static function getComponentsTotalAlt($ref, $reqid, $test_id){
 		$query = Doctrine_Query::create() 
-		-> select("SUM(qc.method_charge) as component_total") 
+		-> select("SUM(qc.method_charge_kes) as component_total_kes, SUM(qc.method_charge_usd) as component_total_usd") 
 		-> from("quotations_components qc")
 		-> andWhere("qc.quotations_id =?", $reqid)
 		-> andWhere("qc.test_id =?", $test_id);
