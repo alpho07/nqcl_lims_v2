@@ -80,6 +80,21 @@ class MY_Controller extends CI_Controller {
         return strtolower($current_currency);
     }
 
+
+    //change currency
+    function changeCurrentCurrency($id){
+    	
+    	//get new currency
+    	$newcurrency = $this -> input -> post('newCurrency');
+
+    	//set currency update array
+    	$currency_update_array = array('currency'=> $newcurrency);
+    	
+    	//update quotation array
+    	$this->db->where('id',$id)->update('quotation',$currency_update_array);  
+
+    }
+
     //get followed by tests
     function getFollowedBy($tests_array){
         

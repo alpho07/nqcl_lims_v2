@@ -77,7 +77,12 @@
 			},
 			{"sTitle":"Quotation Date","mData":"Quotation_date"},
 			{"sTitle":"Entries No.","mData":"Quotations_final[].quotation_entries"},
-			{"sTitle":"Currency","mData":"Currency"},
+			{"sTitle":"Currency","mData":null,
+			"mRender": function(data, type, row){
+				return '<select class=""><option value ="KES">KES</option><option value ="USD">USD</option></select>';
+			},
+			"className":"currency_change"
+			},
 			{"sTitle":"Amount","mData":null,
 				"mRender": function ( data, type, row ) {
 					if(row.Currency == 'KES'){
@@ -245,6 +250,37 @@
 
 	 //Print to Pdf
 	 $('#list_quotation tbody').on("click", "td.quotationView", function (e) {
+		 
+
+	 		//Get row,tr
+			var tr = $(this).closest('tr');
+        	var row = qtable.row( tr );
+
+			//Get quotation no
+			quotation_no = row.data().Quotation_no;
+			
+			e.preventDefault();
+            var href = '<?php echo base_url() . "quotations/" ?>'+'Quotation_'+quotation_no+'.pdf';
+			
+			console.log(href);
+			
+            $.fancybox.open({
+                href: href,
+                type: 'iframe',
+                autoSize: false,
+                autoDimensions: false,
+                width: 600,
+                height: 800,
+                'afterClose':function(){
+                	$('#list_quotation').DataTable().ajax.reload();
+                }
+            })
+        })
+
+
+
+	 	//On changing currency do the following?
+	 	 $('#list_quotation tbody').on("click", "td.currency_change", function (e) {
 		 
 
 	 		//Get row,tr
