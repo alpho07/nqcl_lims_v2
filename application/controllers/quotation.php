@@ -86,7 +86,7 @@ class Quotation extends MY_Controller {
 		$notes = "Changed ".$tests_changed." compendium from ".$old_compendia_details[0]['name']." to ".$new_compendia_details[0]['name'];
 
 		//Add to Invoice Tracking
-		$insertIntoInvoiceTracking = "INSERT INTO invoice_tracking(invoice_no, quotation_no, stage, notes, user_id, user_type_id, discount, amount, batch_total,payable_amount) SELECT DISTINCT invoice_no, quotation_no, stage, '$notes', $user_id, $user_type_id, discount, amount, batch_total,payable_amount FROM invoice_tracking WHERE quotation_no IN ('$qid') ";
+		$insertIntoInvoiceTracking = "INSERT INTO invoice_tracking(invoice_no, quotation_no, stage, notes, user_id, user_type_id, discount, amount_kes, batch_total_kes,payable_amount_kes,amount_usd, batch_total_usd,payable_amount_usd, currency) SELECT DISTINCT invoice_no, quotation_no, stage, '$notes', $user_id, $user_type_id, discount, amount_kes, batch_total_kes,payable_amount_kes,amount_usd, batch_total_usd,payable_amount_usd, currency FROM invoice_tracking WHERE quotation_no IN ('$qid') ";
 
 		var_dump($insertIntoInvoiceTracking);
 
@@ -431,7 +431,7 @@ class Quotation extends MY_Controller {
 
 
 		//Add invoice tracking
-		$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, ${'total_'.$currency_small}, ${'payable_amount_'.$currency_small}, $notes, ${'batch_total_'.$currency_small}, $quotations_id);
+		$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total_kes, $payable_amount_kes, $notes, $batch_total_kes, $quotations_id, $total_usd, $batch_total_usd, $payable_amount_usd, $currency);
 
 
  	}
@@ -1144,9 +1144,7 @@ class Quotation extends MY_Controller {
 	
 
 			//Add Invoice Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount.'_'.$currency_small, $notes, $batch_total.'_'.$currency_small, $quotation_id.'-'.$b);
-
-			
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total_kes, $payable_amount_kes, $notes, $batch_total_kes, $quotation_id.'-'.$b,$total_usd, $batch_total_usd,$payable_amount_usd, $currency);		
 			}
 
 			//Get new total
@@ -1201,7 +1199,7 @@ class Quotation extends MY_Controller {
 		}
 
 
-		public function addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotations_id){
+		public function addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total_kes, $payable_amount_kes, $notes, $batch_total_kes, $quotations_id, $total_usd, $batch_total_usd, $payable_amount_usd, $currency){
 
 			//*TEMPORARY HACK*// If user is a client, lock editing from client window
 			$this -> db -> where(array('quotation_no'=>$quotation_no));
@@ -1215,9 +1213,13 @@ class Quotation extends MY_Controller {
 			$inv_t->user_id = $user_id;
 			$inv_t->user_type_id = $user_type_id;
 			$inv_t->discount = 0;
-			$inv_t->batch_total = $batch_total;
-			$inv_t->amount = $total;
-			$inv_t->payable_amount = $payable_amount;
+			$inv_t->batch_total_kes = $batch_total_kes;
+			$inv_t->amount_kes = $total_kes;
+			$inv_t->payable_amount_kes = $payable_amount_kes;
+			$inv_t->batch_total_usd = $batch_total_usd;
+			$inv_t->amount_usd = $total_usd;
+			$inv_t->payable_amount_usd = $payable_amount_usd;
+			$inv_t->currency = $currency;
 			$inv_t->date = date('Y-m-d H:i:s');
 			$inv_t->save();
 		}
@@ -1355,18 +1357,19 @@ class Quotation extends MY_Controller {
 						} else{
 							$qc->method_id = $method_details[0]['id'];
 						}
-						$qc->method_charge = $method_details[0]['charge_'.$currency_small];
-						$qc->method_charge_alt = $method_details[0]['charge_'.$currency_alt];
+						$qc->method_charge_kes = $method_details[0]['charge_kes'];
+						$qc->method_charge_usd = $method_details[0]['charge_usd'];
 						$qc->save();
 
 						//Update test total with default method charges
 						$tmc = Quotations_components::getComponentsTotal($quotation_no.'-'.$b, $value['test_id']);
-						$total_methodCharge = $tmc[0]['component_total'];
+						$total_methodCharge_kes = $tmc[0]['component_total_kes'];
+						$total_methodCharge_usd = $tmc[0]['component_total_usd'];
 						//var_dump($total_methodCharge);
 
 						//Update Q Request Details with component total
 						$qr_where_array =  array('quotations_id' =>$quotation_no.'-'.$b, 'test_id' => $value['test_id']);
-						$qr_update_array =  array('method_charge' => $total_methodCharge);
+						$qr_update_array =  array('method_charge_kes' => $total_methodCharge_kes, 'method_charge_usd' => $total_methodCharge_usd);
 
 						$this -> db -> where($qr_where_array);
 						$this -> db -> update('q_request_details', $qr_update_array);
@@ -1376,26 +1379,34 @@ class Quotation extends MY_Controller {
 
 						//Get total for this batch only.
 						$b_total = Q_request_details::getBatchTotal($quotations_id);
-						$batch_total = $b_total[0]['sum'];
+						$batch_total_kes = $b_total[0]['batch_total_kes'];
+						$batch_total_usd = $b_total[0]['batch_total_usd'];
 		
 						//Update quotations final
 						$qb_where_array = array('quotations_id' => $quotations_id);
-						$qb_update_array = array('amount'=>$batch_total);
+						$qb_update_array = array('amount_kes'=>$batch_total_kes,'amount_usd'=>$batch_total_usd);
 						$this -> db -> where($qb_where_array);
 						$this -> db -> update('quotations', $qb_update_array);
 
 
 						//Get new total
 						$main_total = Q_request_details::getTotal($quotation_id);
-						$total = $main_total[0]['sum'];
+						$total_kes = $main_total[0]['main_total_kes'];
+						$total_usd = $main_total[0]['main_total_usd'];
 						//var_dump($main_total);		
 
 						$quotation_extras = Quotations_final::getQuotationExtras($quotation_no); 
-						$payable_amount = $total + $quotation_extras[0]['admin_fee'] + ($quotation_extras[0]['reporting_fee']/100*$total) - ($quotation_extras[0]['discount']/100*$total);
+						
+						//Get payable amount in KES
+						$payable_amount_kes = $total_kes + $quotation_extras[0]['admin_fee_kes'] + ($quotation_extras[0]['reporting_fee_kes']/100*$total_kes) - ($quotation_extras[0]['discount']/100*$total_kes);
+
+						//Get payable amount in USD
+						$payable_amount_usd = $total_usd + $quotation_extras[0]['admin_fee_usd'] + ($quotation_extras[0]['reporting_fee_usd']/100*$total_kes) - ($quotation_extras[0]['discount']/100*$total_usd);
 
 						//Update quotations final
 						$qf_where_array = array('quotation_no' => $quotation_no);
-						$qf_update_array = array('amount'=>$total, 'payable_amount'=>$payable_amount);
+						$qf_update_array = array('amount_kes'=>$total_kes, 'payable_amount_kes'=>$payable_amount_kes, 'amount_usd'=>$total_usd, 'payable_amount_usd'=>$payable_amount_usd);
+
 						$this -> db -> where($qf_where_array);
 						$this -> db -> update('quotations_final', $qf_update_array);
 
@@ -1412,7 +1423,7 @@ class Quotation extends MY_Controller {
 			$notes = "Reverse engineered invoice from existing analysis request.";
 
 			//Add Invoice Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotation_no);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total_kes, $payable_amount_kes, $notes, $batch_total_kes, $quotations_id, $total_usd, $batch_total_usd, $payable_amount_usd, $currency);
 
 		}
 
@@ -1425,30 +1436,37 @@ class Quotation extends MY_Controller {
 
 			//Get total for this batch only.
 			$b_total = Q_request_details::getBatchTotal($quotations_id);
-			$batch_total = $b_total[0]['sum'];
+			$batch_total_kes = $b_total[0]['batch_total_kes'];
+			$batch_total_usd = $b_total[0]['batch_total_usd'];
 
 			//Update quotations final
 			$qb_where_array = array('quotation_id' => $quotation_id);
-			$qb_update_array = array('amount'=>$batch_total);
+			$qb_update_array = array('amount_kes'=>$batch_total_kes, 'amount_usd'=>$batch_total_usd);
 			$this -> db -> where($qb_where_array);
 			$this -> db -> update('quotations', $qb_update_array);
 
 			//Get new total
 			$main_total = Q_request_details::getTotal($quotation_id);
-			$total = $main_total[0]['sum'];
+			$total_kes = $main_total[0]['main_total_kes'];
+			$total_usd = $main_total[0]['main_total_usd'];
 			//var_dump($main_total);		
 
 			$quotation_extras = Quotations_final::getQuotationExtras($quotation_no); 
-			$payable_amount = $total + $quotation_extras[0]['admin_fee'] + ($quotation_extras[0]['reporting_fee']/100*$total) - ($quotation_extras[0]['discount']/100*$total);
+			
+			//Get payable amount in KES
+			$payable_amount_kes = $total_kes + $quotation_extras[0]['admin_fee_kes'] + ($quotation_extras[0]['reporting_fee_kes']/100*$total_kes) - ($quotation_extras[0]['discount']/100*$total_kes);
+
+			//Get payable amount in USD
+			$payable_amount_usd = $total_usd + $quotation_extras[0]['admin_fee_usd'] + ($quotation_extras[0]['reporting_fee_usd']/100*$total_usd) - ($quotation_extras[0]['discount']/100*$total_usd);
 
 			//Update quotations final
 			$qf_where_array = array('quotation_no' => $quotation_no);
-			$qf_update_array = array('amount'=>$total, 'payable_amount'=>$payable_amount);
+			$qf_update_array = array('amount_kes'=>$total_kes, 'payable_amount_kes'=>$payable_amount_kes, 'amount_kes'=>$total_kes,'payable_amount_usd'=>$payable_amount_usd);
 			$this -> db -> where($qf_where_array);
 			$this -> db -> update('quotations_final', $qf_update_array);
 		
 			//Add Invoice Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $quotations_id);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total_kes, $payable_amount_kes, $notes, $batch_total_kes, $quotations_id, $total_usd, $batch_total_usd, $payable_amount_usd, $currency);
 
 		}
 
@@ -1723,12 +1741,14 @@ class Quotation extends MY_Controller {
 
 			//Get amount
 			$q_amount = Quotations_final::getAmount($invoice_id);
-			$amount = $q_amount[0]['amount'];
-			$payable_amount = (100-$invoice_discount)/100*$amount;
+			$amount_kes = $q_amount[0]['amount_kes'];
+			$amount_usd = $q_amount[0]['amount_usd'];
+			$payable_amount_kes = (100-$invoice_discount)/100*$amount_kes;
+			$payable_amount_usd = (100-$invoice_discount)/100*$amount_usd;
 
 			//Update Discount
 			$this->db->where('quotation_no', $invoice_id);
-			$this->db->update('quotations_final', array('discount'=>$invoice_discount, 'payable_amount'=>$payable_amount));
+			$this->db->update('quotations_final', array('discount'=>$invoice_discount, 'payable_amount_kes'=>$payable_amount_kes, 'payable_amount_usd'=>$payable_amount_usd));
 
 
 			//Send to person with corresponding coa*
@@ -1737,7 +1757,7 @@ class Quotation extends MY_Controller {
 			$notes = "Approved Invoice";
 
 			//Update Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total);
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total_kes, $payable_amount_kes, $notes, $batch_total_kes, $quotations_id, $total_usd, $batch_total_usd, $payable_amount_usd, $currency);		
 		}
 
 
@@ -1769,17 +1789,19 @@ class Quotation extends MY_Controller {
 				$quotation_no = $request_id;
 			}
 
-			$total = $q_amount[0]['amount'];
-			$payable_amount = $total;
+			$total_kes = $q_amount[0]['amount_kes'];
+			$payable_amount_kes = $total_kes;
 			$b_total = Q_request_details::getBatchTotal($inv_id);
-		    $batch_total = $b_total[0]['sum']; ;
-		   
+		    $batch_total_kes = $b_total[0]['batch_total_kes'];
+			$total_usd = $q_amount[0]['amount_usd'];
+			$payable_amount_usd = $total_usd;
+		    $batch_total_usd = $b_total[0]['batch_total_usd'];
+
 			//Send to person with corresponding coa
 			$notes = "Approved ". ucfirst($source);
 
 			//Add Tracking
-			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total, $payable_amount, $notes, $batch_total, $invoice_id);
-		}
+			$this->addInvoiceTracking($quotation_no, $user_id, $user_type_id, $total_kes, $payable_amount_kes, $notes, $batch_total_kes, $quotations_id, $total_usd, $batch_total_usd, $payable_amount_usd, $currency);			}
 
 
 		public function getInvoiceTrackingAll(){
@@ -2170,10 +2192,33 @@ class Quotation extends MY_Controller {
 		
 		//Get Total
 		$data['total'] = $register::getTotalPerClient($client_id, $reqid);
-		$total_cost = $data['total'][0]['sum'];
-		
+		$total_cost_kes = $data['total'][0]['main_total_kes'];
+		$total_cost_usd = $data['total'][0]['main_total_usd'];
+
+		/*BAD*/
+		$adjusted_total_kes = 0;
+		$adjusted_total_usd = 0;
+		$admin_fee_usd = 0;
+		$admin_fee_kes = 0;
+		$reporting_fee_usd = 0; 
+		$reporting_fee_kes = 0; 
+
 		//Adjusted Total
-		$adjusted_total = $total_cost + $admin_fee + ($total_cost*$reporting_fee_p/100) - ($total_cost*$discount_p/100);
+		if($c == 'kes'){
+			$adjusted_total = $total_cost_kes + $admin_fee + ($total_cost_kes*$reporting_fee_p/100) - ($total_cost_kes*$discount_p/100);
+			$total_cost = $total_cost_kes;
+			$adjusted_total_kes = $adjusted_total;
+			$admin_fee_kes = $admin_fee;
+			$reporting_fee_kes = $reporting_fee_p; 
+		}
+		else if($c == 'usd'){
+			$adjusted_total = $total_cost_usd + $admin_fee + ($total_cost_usd*$reporting_fee_p/100) - ($total_cost_usd*$discount_p/100);
+			$total_cost = $total_cost_kes;
+			$adjusted_total_usd = $adjusted_total;
+			$admin_fee_usd = $admin_fee;
+			$reporting_fee_usd = $reporting_fee_p; 
+		}
+		
 		
 		//Consolidate values and keys arrays to form single extras array 
 		$xt = array();
@@ -2226,10 +2271,12 @@ class Quotation extends MY_Controller {
        if($this->checkIfThisQuotationAlreadyPrinted($reqid) == true){
        		
        		$this->db->where('quotation_no', $reqid);
-			$this->db->update('quotations_final', array('admin_fee' => $admin_fee, 'reporting_fee' => $reporting_fee_p,
+			$this->db->update('quotations_final', array('admin_fee_kes' => $admin_fee_kes, 'admin_fee_usd' => $admin_fee_usd, 'reporting_fee_usd' => $reporting_fee_p, 'reporting_fee_kes' => $reporting_fee_p
 				'discount' => $discount_p,
-				'amount' => $total_cost,
-				'payable_amount' => $adjusted_total,
+				'amount_kes' => $total_cost_kes,
+				'amount_usd' => $total_cost_usd,
+				'payable_amount_kes' => $adjusted_total_kes,
+				'payable_amount_usd' => $adjusted_total_usd,
 				'signatory_title' => $signatory_t,
 				'signatory_name' => $signatory_n,
 				'print_status' => 1,
@@ -2244,11 +2291,15 @@ class Quotation extends MY_Controller {
 		$q_f = new Quotations_final();
 		$q_f -> quotation_no = $reqid;
 		$q_f -> client_id = $client_id;
-		$q_f -> admin_fee = $admin_fee;
-		$q_f -> reporting_fee = $reporting_fee_p;
+		$q_f -> admin_fee_kes = $admin_fee_kes;
+		$q_f -> admin_fee_kes = $admin_fee_kes;
+		$q_f -> reporting_fee_kes = $reporting_fee_p;
+		$q_f -> reporting_fee_usd = $reporting_fee_p;
 		$q_f -> discount = $discount_p;
-		$q_f -> amount = $total_cost;
-		$q_f -> payable_amount = $adjusted_total;
+		$q_f -> amount_kes = $total_cost_kes;
+		$q_f -> amount_usd = $total_cost_usd;
+		$q_f -> payable_amount_kes = $payable_amount_kes;
+		$q_f -> payable_amount_usd = $payable_amount_usd;
 		$q_f -> signatory_title = $signatory_t;
 		$q_f -> signatory_name = $signatory_n;
 		$q_f->  date_printed = date('Y-m-d');

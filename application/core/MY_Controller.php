@@ -84,14 +84,29 @@ class MY_Controller extends CI_Controller {
     //change currency
     function changeCurrentCurrency($id){
     	
+        //get user details
+        $user_id = $this->session->userdata('user_id'); 
+        $user_type_id = $this->session->userdata('usertype_id');
+
     	//get new currency
+        //$newcurrency = $this -> uri -> segment(4);
     	$newcurrency = $this -> input -> post('newCurrency');
 
     	//set currency update array
     	$currency_update_array = array('currency'=> $newcurrency);
     	
     	//update quotation array
-    	$this->db->where('id',$id)->update('quotation',$currency_update_array);  
+    	$this->db->where('quotation_no',$id)->update('quotation',$currency_update_array); 
+
+        //update quotations final table
+        $this->db->where('quotation_no',$id)->update('quotations_final',$currency_update_array);
+
+        //update invoice tracking table
+        $insertIntoInvoiceTracking = "INSERT INTO invoice_tracking(invoice_no, quotation_no, stage, notes, user_id, user_type_id, discount, amount_kes, batch_total_kes,payable_amount_kes,amount_usd, batch_total_usd,payable_amount_usd, currency) SELECT DISTINCT invoice_no, quotation_no, stage, '$notes', $user_id, $user_type_id, discount, amount_kes, batch_total_kes,payable_amount_kes,amount_usd, batch_total_usd,payable_amount_usd, $newcurrency FROM invoice_tracking WHERE quotation_no IN ('$id')";
+
+
+        //Run query
+        $this->db->query($insertIntoInvoiceTracking);
 
     }
 
