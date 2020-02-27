@@ -77,9 +77,16 @@
 			},
 			{"sTitle":"Quotation Date","mData":"Quotation_date"},
 			{"sTitle":"Entries No.","mData":"Quotations_final[].quotation_entries"},
-			{"sTitle":"Currency","mData":null,
+			{"sTitle":"Currency","mData":"Currency",
 			"mRender": function(data, type, row){
-				return '<select class=""><option value ="KES">KES</option><option value ="USD">USD</option></select>';
+
+				if(data == 'KES'){
+					options = '<option selected value ="KES">KES</option><option value ="USD">USD</option>'
+				}else{
+					options = '<option value ="KES">KES</option><option selected value ="USD">USD</option>'
+				}
+
+				return '<select class="selectCurrency">'+options+'</select>';
 			},
 			"className":"currency_change"
 			},
@@ -191,6 +198,8 @@
 	});
 
 
+
+
 	//Add buttons to table
 	//qtable.buttons().container().insertBefore('#list_quotation_filter');
 	
@@ -278,34 +287,39 @@
         })
 
 
-
 	 	//On changing currency do the following?
-	 	 $('#list_quotation tbody').on("click", "td.currency_change", function (e) {
-		 
+	 	 $('#list_quotation tbody').on("change", "td.currency_change .selectCurrency", function (e) {
 
+	 	 	//get new currency
+	 	 	console.log(e.target);
+	 	 	var newCurrency = e.target.value;
+	 	 	//e.target.selected = true;
+		 
 	 		//Get row,tr
 			var tr = $(this).closest('tr');
         	var row = qtable.row( tr );
 
 			//Get quotation no
 			quotation_no = row.data().Quotation_no;
+			console.log(quotation_no);
 			
 			e.preventDefault();
-            var href = '<?php echo base_url() . "quotations/" ?>'+'Quotation_'+quotation_no+'.pdf';
+            var href = '<?php echo base_url() . "quotation/changeCurrency/" ?>'+quotation_no+'/'+newCurrency;
 			
 			console.log(href);
 			
-            $.fancybox.open({
-                href: href,
-                type: 'iframe',
-                autoSize: false,
-                autoDimensions: false,
-                width: 600,
-                height: 800,
-                'afterClose':function(){
-                	$('#list_quotation').DataTable().ajax.reload();
+			$.ajax({
+                type: 'POST',
+                url: href,            
+                success: function (response) {
+                	qtable.ajax.reload();	
+                    //qtable.row(this).data(newRowData).draw()
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    console.log(thrownError);
                 }
-            })
+            });			
+
         })
 
 

@@ -492,6 +492,17 @@ class Quotation extends MY_Controller {
             echo "[]";
         }
 	}
+
+	public function changeCurrency(){
+		
+		//get variables
+		$qno = $this -> uri -> segment(3);
+		$currency = $this -> uri -> segment(4);
+
+		//Call change currency function at MY Controller
+		$this->changeCurrentCurrency($qno, $currency);
+		
+	}
 	
 	public function listAllChildren(){
 		$data['quotation_no'] = $this->uri->segment(3);
@@ -2271,7 +2282,7 @@ class Quotation extends MY_Controller {
        if($this->checkIfThisQuotationAlreadyPrinted($reqid) == true){
        		
        		$this->db->where('quotation_no', $reqid);
-			$this->db->update('quotations_final', array('admin_fee_kes' => $admin_fee_kes, 'admin_fee_usd' => $admin_fee_usd, 'reporting_fee_usd' => $reporting_fee_p, 'reporting_fee_kes' => $reporting_fee_p
+			$this->db->update('quotations_final', array('admin_fee_kes' => $admin_fee_kes, 'admin_fee_usd' => $admin_fee_usd, 'reporting_fee_usd' => $reporting_fee_p, 'reporting_fee_kes' => $reporting_fee_p,
 				'discount' => $discount_p,
 				'amount_kes' => $total_cost_kes,
 				'amount_usd' => $total_cost_usd,

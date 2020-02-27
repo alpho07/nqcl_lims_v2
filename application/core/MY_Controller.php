@@ -82,7 +82,7 @@ class MY_Controller extends CI_Controller {
 
 
     //change currency
-    function changeCurrentCurrency($id){
+    function changeCurrentCurrency($id, $currency){
     	
         //get user details
         $user_id = $this->session->userdata('user_id'); 
@@ -90,19 +90,22 @@ class MY_Controller extends CI_Controller {
 
     	//get new currency
         //$newcurrency = $this -> uri -> segment(4);
-    	$newcurrency = $this -> input -> post('newCurrency');
+    	$newcurrency = $currency;
 
     	//set currency update array
     	$currency_update_array = array('currency'=> $newcurrency);
     	
     	//update quotation array
-    	$this->db->where('quotation_no',$id)->update('quotation',$currency_update_array); 
+    	$this->db->where('quotation_no',$id)->update('quotations',$currency_update_array); 
 
         //update quotations final table
         $this->db->where('quotation_no',$id)->update('quotations_final',$currency_update_array);
 
+        //Currency change notes
+        $notes = 'Currency changed to '.$newcurrency;
+
         //update invoice tracking table
-        $insertIntoInvoiceTracking = "INSERT INTO invoice_tracking(invoice_no, quotation_no, stage, notes, user_id, user_type_id, discount, amount_kes, batch_total_kes,payable_amount_kes,amount_usd, batch_total_usd,payable_amount_usd, currency) SELECT DISTINCT invoice_no, quotation_no, stage, '$notes', $user_id, $user_type_id, discount, amount_kes, batch_total_kes,payable_amount_kes,amount_usd, batch_total_usd,payable_amount_usd, $newcurrency FROM invoice_tracking WHERE quotation_no IN ('$id')";
+        $insertIntoInvoiceTracking = "INSERT INTO invoice_tracking(invoice_no, quotation_no, stage, notes, user_id, user_type_id, discount, amount_kes, batch_total_kes,payable_amount_kes,amount_usd, batch_total_usd,payable_amount_usd, currency) SELECT DISTINCT invoice_no, quotation_no, stage, '$notes', $user_id, $user_type_id, discount, amount_kes, batch_total_kes,payable_amount_kes,amount_usd, batch_total_usd,payable_amount_usd, '$newcurrency' FROM invoice_tracking WHERE quotation_no IN ('$id')";
 
 
         //Run query

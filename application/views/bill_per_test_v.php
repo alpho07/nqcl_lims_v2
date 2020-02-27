@@ -164,6 +164,8 @@ $(document).ready(function(){
 
 	//Send currency to Js Variable
 	var currency = '<?php echo $c; ?>';
+	var c_small = '<?php echo strtolower($c); ?>';
+
 
 	var status = '<?php echo $approvalStatus; ?>';
 	console.log(status);
@@ -266,12 +268,8 @@ $(document).ready(function(){
 			},
 			{"sTitle":"Test Total (<?php echo $c; ?>)","mData":null,
 				"mRender":function(data, type, row){
-					if(currency == 'KES'){
-						return accounting.formatMoney(parseInt(row.method_charge_kes), { format: "%v"}); 
-					}
-					else{
-						return accounting.formatMoney(parseInt(row.method_charge_usd), { format: "%v"}); 
-					}
+					charge = "row.method_charge"+"_<?php echo strtolower($c); ?>"
+					return accounting.formatMoney(parseInt(eval(charge)), { format: "%v"}); 
 				},
 				"fnCreatedCell":function(nTd, sData, oData, iRow, iCol){
 					$(nTd).css({"font-weight":"bold"});
@@ -326,14 +324,17 @@ $(document).ready(function(){
 			var total = 0;
 			var table = "<?php echo $table ?>";
 
+			//get currency specific total
+			totalCharge = "aaData[i].method_charge"+"_<?php echo strtolower($c); ?>"
+
 			//Loop through data in table while doing addition of method and tests charges
 			for(var i =0; i<aaData.length; i++){
-				total += parseFloat(aaData[i].method_charge);
+				total += parseFloat(eval(totalCharge));
 			}
 
 
 			//format payable amount to include currency
-			p_amount = accounting.formatMoney(<?php if($tracking_info){echo $tracking_info[0]['payable_amount'];}else {echo '0';}  ?>, {symbol:"<?php echo $c; ?>", format: "%s %v"});
+			p_amount = accounting.formatMoney(<?php if($tracking_info){echo $tracking_info[0]['payable_amount_'.strtolower($c)];}else {echo '0';}  ?>, {symbol:"<?php echo $c; ?>", format: "%s %v"});
 			$('#title_payable_amount').html(p_amount);
 			
 			//Format total as money,currency
@@ -400,7 +401,7 @@ $(document).ready(function(){
 				},
 				"className":"role"
 			},
-			{"sTitle":"Amount (<?php echo $c; ?>)","mData":"batch_total",
+			{"sTitle":"Amount (<?php echo $c; ?>)","mData":"batch_total_<?php echo strtolower($c); ?>",
 				"mRender":function(data,type,row){
 					return accounting.formatMoney(data, {symbol : " ", format: "%s %v" });
 				},
