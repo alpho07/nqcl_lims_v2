@@ -6,12 +6,11 @@ accounting@^0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/accounting/-/accounting-0.4.1.tgz#87dd4103eff7f4460f1e186f5c677ed6cf566883"
 
-axios@^0.17.1:
-  version "0.17.1"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.17.1.tgz#2d8e3e5d0bdbd7327f91bc814f5c57660f81824d"
+axios@^0.21.1:
+  version "0.21.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
   dependencies:
-    follow-redirects "^1.2.5"
-    is-buffer "^1.1.5"
+    follow-redirects "^1.10.0"
 
 bulma@^0.6.2:
   version "0.6.2"
@@ -30,25 +29,13 @@ datatables@>=1.10.8, datatables@^1.10.13:
   dependencies:
     jquery ">=1.7"
 
-debug@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
-  dependencies:
-    ms "2.0.0"
-
 fancybox@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/fancybox/-/fancybox-3.0.0.tgz#8c21af8142c621bed7d551ba69c4c38eaecd2e04"
 
-follow-redirects@^1.2.5:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.4.0.tgz#a146a3a5d402201c7a3e6128643f0e336d212b10"
-  dependencies:
-    debug "^3.1.0"
-
-is-buffer@^1.1.5:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/is-buffer/-/is-buffer-1.1.6.tgz#efaa2ea9daa0d7ab2ea13a97b2b8ad51fefbe8be"
+follow-redirects@^1.10.0:
+  version "1.13.1"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.13.1.tgz#5f69b813376cee4fd0474a3aba835df04ab763b7"
 
 jquery-ui@^1.12.1:
   version "1.12.1"
@@ -61,10 +48,6 @@ jquery@>=1.7, jquery@>=1.7.0, jquery@^3.2.1:
 money@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/money/-/money-0.2.0.tgz#7eada2df1009df935fa18d4fb1d620ddacce02c2"
-
-ms@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
 
 noty@^3.2.0-beta:
   version "3.2.0-beta"
