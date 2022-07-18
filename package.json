@@ -7,7 +7,7 @@
     "datatables-buttons": "^1.0.3",
     "fancybox": "^3.0.0",
     "jquery": "^3.2.1",
-    "jquery-ui": "^1.12.1",
+    "jquery-ui": "^1.13.2",
     "money": "^0.2.0",
     "noty": "^3.2.0-beta",
     "summernote": "^0.8.10",
